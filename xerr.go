@@ -23,6 +23,10 @@ type xError struct {
 }
 
 func (err xError) Error() string {
+	if err.stack == nil {
+		return err.Error()
+	}
+
 	sb := strings.Builder{}
 	sb.WriteString(err.err.Error())
 	sb.WriteString("\nStacktrace:\n")
@@ -61,7 +65,17 @@ func stacktrace() []stackFrame {
 	return stack
 }
 
-func New(format string, args ...any) error {
+type option func()
+
+func WithWrap() option { return nil }
+
+func WithStack() option { return nil }
+
+func WithMessage(message string) option { return nil }
+
+func WithField[T any](name string, value T) option { return nil }
+
+func New(...option) error {
 	return fmt.Errorf(format, args...)
 }
 
