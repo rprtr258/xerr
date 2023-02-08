@@ -71,6 +71,8 @@ func WithWrap() option { return nil }
 
 func WithStack() option { return nil }
 
+func WithNoTimestamp() option { return nil }
+
 func WithMessage(message string) option { return nil }
 
 func WithField[T any](name string, value T) option { return nil }
