@@ -1,16 +1,14 @@
-package xerr_test
+package xerr
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/rprtr258/xerr"
 )
 
 func TestIs(t *testing.T) {
-	exampleErr1 := xerr.New(xerr.WithMessage("1"))
-	exampleErr2 := xerr.New(xerr.WithMessage("2"))
+	exampleErr1 := New(WithMessage("1"))
+	exampleErr2 := New(WithMessage("2"))
 
 	for _, test := range []struct {
 		name   string
@@ -32,19 +30,34 @@ func TestIs(t *testing.T) {
 		},
 		{
 			name: "wrapped err",
-			err: xerr.New(
-				xerr.WithErr(exampleErr1),
-				xerr.WithMessage("3"),
+			err: New(
+				WithErr(exampleErr1),
+				WithMessage("3"),
 			),
 			target: exampleErr1,
 			want:   true,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := xerr.Is(test.err, test.target)
+			got := Is(test.err, test.target)
 			assert.Equal(t, test.want, got)
 		})
 	}
+}
+
+func TestCombine(t *testing.T) {
+	err1 := New(WithMessage("1"), WithNoTimestamp())
+	err2 := New(WithMessage("2"), WithNoTimestamp())
+	err3 := New(WithMessage("3"), WithNoTimestamp())
+
+	got := Combine(err1, nil, err2, err3, nil)
+
+	want := `{"errors":[` +
+		`{"message":"1"},` +
+		`{"message":"2"},` +
+		`{"message":"3"}` +
+		`]}`
+	assert.Equal(t, want, got.Error())
 }
 
 type myErr string
@@ -55,23 +68,23 @@ func (err myErr) Error() string {
 
 func TestAs_myErrSuccess(t *testing.T) {
 	want := myErr("inside")
-	err := xerr.New(
-		xerr.WithErr(want),
-		xerr.WithMessage("outside"),
+	err := New(
+		WithErr(want),
+		WithMessage("outside"),
 	)
 
-	got, ok := xerr.As[myErr](err)
+	got, ok := As[myErr](err)
 	assert.True(t, ok)
 	assert.Equal(t, want, got)
 }
 
 func TestAs_myErrFail(t *testing.T) {
-	inside := xerr.New(xerr.WithMessage("inside"))
-	err := xerr.New(
-		xerr.WithErr(inside),
-		xerr.WithMessage("outside"),
+	inside := New(WithMessage("inside"))
+	err := New(
+		WithErr(inside),
+		WithMessage("outside"),
 	)
 
-	_, ok := xerr.As[myErr](err)
+	_, ok := As[myErr](err)
 	assert.False(t, ok)
 }
