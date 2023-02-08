@@ -9,8 +9,8 @@ import (
 )
 
 func TestIs(t *testing.T) {
-	exampleErr1 := xerr.New("1")
-	exampleErr2 := xerr.New("2")
+	exampleErr1 := xerr.New(xerr.WithMessage("1"))
+	exampleErr2 := xerr.New(xerr.WithMessage("2"))
 
 	for _, test := range []struct {
 		name   string
@@ -31,8 +31,11 @@ func TestIs(t *testing.T) {
 			want:   false,
 		},
 		{
-			name:   "wrapped err",
-			err:    xerr.Wrap(exampleErr1, "3"),
+			name: "wrapped err",
+			err: xerr.New(
+				xerr.WithErr(exampleErr1),
+				xerr.WithMessage("3"),
+			),
 			target: exampleErr1,
 			want:   true,
 		},
@@ -52,7 +55,10 @@ func (err myErr) Error() string {
 
 func TestAs_myErrSuccess(t *testing.T) {
 	want := myErr("inside")
-	err := xerr.Wrap(want, "outside")
+	err := xerr.New(
+		xerr.WithErr(want),
+		xerr.WithMessage("outside"),
+	)
 
 	got, ok := xerr.As[myErr](err)
 	assert.True(t, ok)
@@ -60,8 +66,11 @@ func TestAs_myErrSuccess(t *testing.T) {
 }
 
 func TestAs_myErrFail(t *testing.T) {
-	inside := xerr.New("inside")
-	err := xerr.Wrap(inside, "outside")
+	inside := xerr.New(xerr.WithMessage("inside"))
+	err := xerr.New(
+		xerr.WithErr(inside),
+		xerr.WithMessage("outside"),
+	)
 
 	_, ok := xerr.As[myErr](err)
 	assert.False(t, ok)
