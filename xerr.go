@@ -89,11 +89,7 @@ func (err *xError) Error() string {
 
 	bytes, jerr := json.Marshal(err.fields)
 	if jerr != nil {
-		return fmt.Sprintf(
-			"failed marshalling to JSON: %s; error: %#v",
-			jerr.Error(),
-			err.fields,
-		)
+		return fmt.Sprintf("%#v", err.fields)
 	}
 
 	return string(bytes)
