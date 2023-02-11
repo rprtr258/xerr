@@ -11,9 +11,9 @@ import (
 const _maxStackDepth = 50
 
 type stackFrame struct {
-	function string
-	file     string
-	line     int
+	Function string
+	File     string
+	Line     int
 }
 
 func stacktrace() []stackFrame {
@@ -28,9 +28,9 @@ func stacktrace() []stackFrame {
 		stack = append(
 			stack,
 			stackFrame{
-				function: frame.Function,
-				file:     frame.File,
-				line:     frame.Line,
+				Function: frame.Function,
+				File:     frame.File,
+				Line:     frame.Line,
 			},
 		)
 		if !more {
@@ -38,6 +38,20 @@ func stacktrace() []stackFrame {
 		}
 	}
 	return stack
+}
+
+func caller() stackFrame {
+	callers := make([]uintptr, 1)
+	length := runtime.Callers(3, callers[:])
+	callers = callers[:length]
+
+	frames := runtime.CallersFrames(callers)
+	frame, _ := frames.Next()
+	return stackFrame{
+		Function: frame.Function,
+		File:     frame.File,
+		Line:     frame.Line,
+	}
 }
 
 type xError struct {
@@ -54,9 +68,9 @@ func (err *xError) fill() {
 		frames := make([]map[string]any, len(err.stack))
 		for i, frame := range err.stack {
 			frames[i] = map[string]any{
-				"function": frame.function,
-				"file":     frame.file,
-				"line":     frame.line,
+				"function": frame.Function,
+				"file":     frame.File,
+				"line":     frame.Line,
 			}
 		}
 		err.fields["stacktrace"] = frames
@@ -148,8 +162,10 @@ func New(options ...option) error {
 		errs:    nil,
 		stack:   nil,
 		message: "",
-		fields:  map[string]any{},
-		at:      time.Now().UTC(),
+		fields: map[string]any{
+			"caller": caller(),
+		},
+		at: time.Now().UTC(),
 	}
 	for _, opt := range options {
 		opt(err)
