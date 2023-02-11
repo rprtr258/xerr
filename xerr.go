@@ -73,7 +73,7 @@ func (err *xError) fill() {
 				xe.fill()
 				errMessages[i] = xe.fields
 			} else {
-				errMessages[i] = err.Error()
+				errMessages[i] = ierr.Error()
 			}
 		}
 		err.fields["errors"] = errMessages
