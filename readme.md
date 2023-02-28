@@ -21,7 +21,7 @@ err := xerr.New(
 ```
 
 ## Why
-Multiple libraries are around in go to help handling errors. But each one of them tackles only one task, e.g. [adding caller metadata, adding stack metadata](https://github.com/ztrue/tracerr), [formatting error messages](https://pkg.go.dev/fmt#Errorf), [wrapping error](https://github.com/pkg/errors), [wrapping multiple errors](go.uber.org/multierr), [structured errors](https://github.com/Southclaws/fault).
+Multiple libraries are around in go to help handling errors. But each one of them tackles only one task, e.g. [adding caller metadata, adding stack metadata](https://github.com/ztrue/tracerr), [formatting error messages](https://pkg.go.dev/fmt#Errorf), [wrapping error](https://github.com/pkg/errors), [wrapping multiple errors](https://go.uber.org/multierr), [structured errors](https://github.com/Southclaws/fault).
 
 None of them is widely used to support all listed features and/or so is not supported actively. So I wrote all utils funcs I want to use while doing error handling making this lib.
 
