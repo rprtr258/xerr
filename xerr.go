@@ -48,7 +48,9 @@ func (err *xError) fill() map[string]any {
 		res["@message"] = err.message
 	}
 
-	res["@caller"] = err.caller
+	if err.caller != nil {
+		res["@caller"] = err.caller
+	}
 
 	if len(err.errs) != 0 {
 		errMessages := make([]any, len(err.errs))
