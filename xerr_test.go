@@ -45,19 +45,16 @@ func TestIs(t *testing.T) {
 	}
 }
 
-func TestCombine(t *testing.T) {
-	err1 := New(WithMessage("1"), WithNoTimestamp())
-	err2 := New(WithMessage("2"), WithNoTimestamp())
-	err3 := New(WithMessage("3"), WithNoTimestamp())
+func TestCombine(tt *testing.T) {
+	t := assert.New(tt)
 
-	got := Combine(err1, nil, err2, err3, nil)
+	err1 := New(WithMessage("1"))
+	err2 := New(WithMessage("2"))
+	err3 := New(WithMessage("3"))
 
-	want := `{"errors":[` +
-		`{"message":"1"},` +
-		`{"message":"2"},` +
-		`{"message":"3"}` +
-		`]}`
-	assert.Equal(t, want, got.Error())
+	got, ok := As[*xError](Combine(err1, nil, err2, err3, nil))
+	t.True(ok)
+	t.Equal([]error{err1, err2, err3}, got.errs)
 }
 
 type myErr string

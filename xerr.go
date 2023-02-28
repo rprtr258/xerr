@@ -141,12 +141,6 @@ func WithMessage(message string) option {
 	}
 }
 
-func WithNoTimestamp() option {
-	return func(xe *xError) {
-		xe.at = time.Time{}
-	}
-}
-
 func WithFields(fields map[string]any) option {
 	return func(xe *xError) {
 		for name, value := range fields {
