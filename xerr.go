@@ -14,7 +14,12 @@ type xError struct {
 	message string
 	fields  map[string]any
 	at      time.Time
+	caller  *stackFrame
 	value   any
+}
+
+func (err *xError) Fields() map[string]any {
+	return err.fields
 }
 
 func (err *xError) fill() {
@@ -37,6 +42,8 @@ func (err *xError) fill() {
 	if err.message != "" {
 		err.fields["@message"] = err.message
 	}
+
+	err.fields["@caller"] = err.caller
 
 	if len(err.errs) != 0 {
 		errMessages := make([]any, len(err.errs))
@@ -134,11 +141,10 @@ func New(opts ...option) *xError {
 		errs:    nil,
 		stack:   nil,
 		message: "",
-		fields: map[string]any{
-			"caller": caller(),
-		},
-		at:    time.Now().UTC(),
-		value: nil,
+		fields:  map[string]any{},
+		at:      time.Now().UTC(),
+		caller:  caller(),
+		value:   nil,
 	}
 	for _, opt := range opts {
 		opt(err)
@@ -207,6 +213,7 @@ func Combine(errs ...error) error {
 			message: "",
 			fields:  nil,
 			at:      time.Time{},
+			caller:  nil,
 			value:   nil,
 		}
 	}

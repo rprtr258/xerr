@@ -35,14 +35,14 @@ func stacktrace(skip int) []stackFrame {
 	return stack
 }
 
-func caller() stackFrame {
+func caller() *stackFrame {
 	callers := make([]uintptr, 1)
 	length := runtime.Callers(3, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
 	frame, _ := frames.Next()
-	return stackFrame{
+	return &stackFrame{
 		Function: frame.Function,
 		File:     frame.File,
 		Line:     frame.Line,
