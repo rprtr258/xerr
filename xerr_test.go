@@ -117,11 +117,11 @@ func TestGetValue(tt *testing.T) {
 		NewM("b", WithValue(123)),
 	))
 
-	intGot, intOk := GetValue[int](err)
+	intGot, intOk := UnwrapValue[int](err)
 	t.True(intOk)
 	t.Equal(123, intGot)
 
-	_, boolOk := GetValue[bool](err)
+	_, boolOk := UnwrapValue[bool](err)
 	t.False(boolOk)
 }
 

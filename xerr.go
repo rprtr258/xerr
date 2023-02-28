@@ -182,7 +182,7 @@ func NewF(message string, fields map[string]any, opts ...option) error {
 	)...)
 }
 
-func GetValue[T any](err error) (T, bool) {
+func UnwrapValue[T any](err error) (T, bool) {
 	stack := []error{err}
 	for len(stack) > 0 {
 		cur := stack[0]
