@@ -101,25 +101,19 @@ func newErr() *xError {
 func TestWithStacktrace(tt *testing.T) {
 	t := assert.New(tt)
 
-	want := []stackFrame{
-		{
-			Function: "github.com/rprtr258/xerr.TestWithStacktrace",
-			File:     "/home/rprtr258/pr/xerr/xerr_test.go",
-			Line:     121,
-		},
-		{
-			Function: "testing.tRunner",
-			File:     "/home/rprtr258/.gvm/gos/go1.19.5/src/testing/testing.go",
-			Line:     1446,
-		},
-		{
-			Function: "runtime.goexit",
-			File:     "/home/rprtr258/.gvm/gos/go1.19.5/src/runtime/asm_amd64.s",
-			Line:     1594,
-		},
+	wantFunctions := []string{
+		"github.com/rprtr258/xerr.TestWithStacktrace",
+		"testing.tRunner",
+		"runtime.goexit",
 	}
+
 	got := newErr().stack
-	t.Equal(want, got, cmp.Diff(want, got))
+	gotFunctions := make([]string, len(got))
+	for i, frame := range got {
+		gotFunctions[i] = frame.Function
+	}
+
+	t.Equal(wantFunctions, gotFunctions, cmp.Diff(wantFunctions, gotFunctions))
 }
 
 func TestGetValue(t *testing.T) {
