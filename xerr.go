@@ -189,7 +189,8 @@ func New(options ...option) *xError {
 		fields: map[string]any{
 			"caller": caller(),
 		},
-		at: time.Now().UTC(),
+		at:    time.Now().UTC(),
+		value: nil,
 	}
 	for _, opt := range options {
 		opt(err)
@@ -236,6 +237,7 @@ func Combine(errs ...error) error {
 			message: "",
 			fields:  nil,
 			at:      time.Time{},
+			value:   nil,
 		}
 	}
 
