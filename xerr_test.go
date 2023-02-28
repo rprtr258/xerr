@@ -58,29 +58,37 @@ func (err myErr) Error() string {
 	return string(err)
 }
 
-func TestAs_myErrSuccess(tt *testing.T) {
-	t := assert.New(tt)
+func TestAs(tt *testing.T) {
+	for name, test := range map[string]struct {
+		err    error
+		want   error
+		wantOk bool
+	}{
+		"success": {
+			err: New(
+				WithErr(myErr("inside")),
+				WithMessage("outside"),
+			),
+			want:   myErr("inside"),
+			wantOk: true,
+		},
+		"fail": {
+			err: New(
+				WithErr(New(WithMessage("inside"))),
+				WithMessage("outside"),
+			),
+			want:   nil,
+			wantOk: false,
+		},
+	} {
+		tt.Run(name, func(tt *testing.T) {
+			t := assert.New(tt)
 
-	want := myErr("inside")
-	err := New(
-		WithErr(want),
-		WithMessage("outside"),
-	)
-
-	got, ok := As[myErr](err)
-	t.True(ok)
-	t.Equal(want, got)
-}
-
-func TestAs_myErrFail(tt *testing.T) {
-	t := assert.New(tt)
-
-	inside := New(WithMessage("inside"))
-	err := New(
-		WithErr(inside),
-		WithMessage("outside"),
-	)
-
-	_, ok := As[myErr](err)
-	t.False(ok)
+			got, ok := As[myErr](test.err)
+			t.Equal(test.wantOk, ok)
+			if ok {
+				t.Equal(test.want, got)
+			}
+		})
+	}
 }
