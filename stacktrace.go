@@ -12,21 +12,11 @@ type stackFrame struct {
 
 func stacktrace(skip int) []stackFrame {
 	callers := make([]uintptr, _maxStackDepth)
-	length := runtime.Callers(2, callers[:])
-	if length >= len(callers) {
-		return nil
-	}
+	length := runtime.Callers(2+skip, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
-	for i := 0; i < skip; i++ {
-		_, more := frames.Next()
-		if !more {
-			return nil
-		}
-	}
-
-	stack := make([]stackFrame, 0, len(callers)-skip)
+	stack := make([]stackFrame, 0, len(callers))
 	for {
 		frame, more := frames.Next()
 		stack = append(
