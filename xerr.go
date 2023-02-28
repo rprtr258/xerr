@@ -140,6 +140,21 @@ func New(options ...option) *xError {
 	return err
 }
 
+func NewM(message string) *xError {
+	return New(WithMessage(message))
+}
+
+func NewW(err error) *xError {
+	return New(WithErrs(err))
+}
+
+func NewWM(err error, message string) *xError {
+	return New(
+		WithErrs(err),
+		WithMessage(message),
+	)
+}
+
 func GetValue[T any](err error) (T, bool) {
 	stack := []error{err}
 	for len(stack) > 0 {
