@@ -147,9 +147,11 @@ func WithNoTimestamp() option {
 	}
 }
 
-func WithField[T any](name string, value T) option {
+func WithFields(fields map[string]any) option {
 	return func(xe *xError) {
-		xe.fields[name] = value
+		for name, value := range fields {
+			xe.fields[name] = value
+		}
 	}
 }
 
