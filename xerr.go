@@ -119,8 +119,8 @@ func WithValue(value any) option {
 	}
 }
 
-func New(options ...option) *xError {
-	if len(options) == 0 {
+func New(opts ...option) *xError {
+	if len(opts) == 0 {
 		return nil
 	}
 
@@ -134,32 +134,32 @@ func New(options ...option) *xError {
 		at:    time.Now().UTC(),
 		value: nil,
 	}
-	for _, opt := range options {
+	for _, opt := range opts {
 		opt(err)
 	}
 	return err
 }
 
-func NewM(message string) *xError {
-	return New(WithMessage(message))
+func NewM(message string, opts ...option) *xError {
+	return New(append(opts, WithMessage(message))...)
 }
 
-func NewW(err error) *xError {
-	return New(WithErrs(err))
+func NewW(err error, opts ...option) *xError {
+	return New(append(opts, WithErrs(err))...)
 }
 
-func NewWM(err error, message string) *xError {
-	return New(
+func NewWM(err error, message string, opts ...option) *xError {
+	return New(append(opts,
 		WithErrs(err),
 		WithMessage(message),
-	)
+	)...)
 }
 
-func NewF(message string, fields map[string]any) *xError {
-	return New(
+func NewF(message string, fields map[string]any, opts ...option) *xError {
+	return New(append(opts,
 		WithMessage(message),
 		WithFields(fields),
-	)
+	)...)
 }
 
 func GetValue[T any](err error) (T, bool) {
