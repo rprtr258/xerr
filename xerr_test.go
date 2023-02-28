@@ -7,8 +7,8 @@ import (
 )
 
 func TestIs(t *testing.T) {
-	exampleErr1 := New(WithMessage("1"))
-	exampleErr2 := New(WithMessage("2"))
+	exampleErr1 := NewM("1")
+	exampleErr2 := NewM("2")
 
 	for name, test := range map[string]struct {
 		err    error
@@ -26,10 +26,7 @@ func TestIs(t *testing.T) {
 			want:   false,
 		},
 		"wrapped err": {
-			err: New(
-				WithErrs(exampleErr1),
-				WithMessage("3"),
-			),
+			err:    NewWM(exampleErr1, "3"),
 			target: exampleErr1,
 			want:   true,
 		},
@@ -43,9 +40,9 @@ func TestIs(t *testing.T) {
 func TestCombine(tt *testing.T) {
 	t := assert.New(tt)
 
-	err1 := New(WithMessage("1"))
-	err2 := New(WithMessage("2"))
-	err3 := New(WithMessage("3"))
+	err1 := NewM("1")
+	err2 := NewM("2")
+	err3 := NewM("3")
 
 	got, ok := As[*xError](Combine(err1, nil, err2, err3, nil))
 	t.True(ok)
@@ -65,18 +62,12 @@ func TestAs(tt *testing.T) {
 		wantOk bool
 	}{
 		"success": {
-			err: New(
-				WithErrs(myErr("inside")),
-				WithMessage("outside"),
-			),
+			err:    NewWM(myErr("inside"), "outside"),
 			want:   myErr("inside"),
 			wantOk: true,
 		},
 		"fail": {
-			err: New(
-				WithErrs(New(WithMessage("inside"))),
-				WithMessage("outside"),
-			),
+			err:    NewWM(NewM("inside"), "outside"),
 			want:   nil,
 			wantOk: false,
 		},
@@ -117,7 +108,7 @@ func TestWithStacktrace(tt *testing.T) {
 
 func TestGetValue(t *testing.T) {
 	err := New(WithErrs(
-		New(WithMessage("a")),
+		NewM("a"),
 		New(WithMessage("b"), WithValue(123)),
 	))
 
