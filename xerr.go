@@ -149,7 +149,7 @@ func WithFields(fields map[string]any) option {
 	}
 }
 
-func New(options ...option) error {
+func New(options ...option) *xError {
 	if len(options) == 0 {
 		return nil
 	}
