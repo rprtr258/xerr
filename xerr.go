@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+var (
+	keyStacktrace = "@stacktrace"
+	keyValue      = "@value"
+	keyMessage    = "@message"
+	keyCaller     = "@caller"
+	keyErrors     = "@errors"
+	keyAt         = "@at"
+)
+
 type xError struct {
 	// errs guranteed to be not nil
 	errs    []error
@@ -37,19 +46,19 @@ func (err *xError) fill() map[string]any {
 				"line":     frame.Line,
 			}
 		}
-		res["@stacktrace"] = frames
+		res[keyStacktrace] = frames
 	}
 
 	if err.value != nil {
-		res["@value"] = err.value
+		res[keyValue] = err.value
 	}
 
 	if err.message != "" {
-		res["@message"] = err.message
+		res[keyMessage] = err.message
 	}
 
 	if err.caller != nil {
-		res["@caller"] = err.caller
+		res[keyCaller] = err.caller
 	}
 
 	if len(err.errs) != 0 {
@@ -61,11 +70,11 @@ func (err *xError) fill() map[string]any {
 				errMessages[i] = ierr.Error()
 			}
 		}
-		res["@errors"] = errMessages
+		res[keyErrors] = errMessages
 	}
 
 	if !err.at.IsZero() {
-		res["@at"] = err.at.Format(time.RFC3339)
+		res[keyAt] = err.at.Format(time.RFC3339)
 	}
 
 	return res
