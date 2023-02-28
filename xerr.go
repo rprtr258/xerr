@@ -72,6 +72,7 @@ type xError struct {
 	message string
 	fields  map[string]any
 	at      time.Time
+	value   any
 }
 
 func (err *xError) fill() {
@@ -84,11 +85,15 @@ func (err *xError) fill() {
 				"line":     frame.Line,
 			}
 		}
-		err.fields["stacktrace"] = frames
+		err.fields["@stacktrace"] = frames
+	}
+
+	if err.value != nil {
+		err.fields["@value"] = err.value
 	}
 
 	if err.message != "" {
-		err.fields["message"] = err.message
+		err.fields["@message"] = err.message
 	}
 
 	if len(err.errs) != 0 {
@@ -101,11 +106,11 @@ func (err *xError) fill() {
 				errMessages[i] = ierr.Error()
 			}
 		}
-		err.fields["errors"] = errMessages
+		err.fields["@errors"] = errMessages
 	}
 
 	if !err.at.IsZero() {
-		err.fields["at"] = err.at.Format(time.RFC3339)
+		err.fields["@at"] = err.at.Format(time.RFC3339)
 	}
 }
 
@@ -166,6 +171,12 @@ func WithFields(fields map[string]any) option {
 	}
 }
 
+func WithValue(value any) option {
+	return func(xe *xError) {
+		xe.value = value
+	}
+}
+
 func New(options ...option) *xError {
 	if len(options) == 0 {
 		return nil
@@ -184,6 +195,23 @@ func New(options ...option) *xError {
 		opt(err)
 	}
 	return err
+}
+
+func GetValue[T any](err error) (T, bool) {
+	stack := []error{err}
+	for len(stack) > 0 {
+		cur := stack[0]
+		stack = stack[1:]
+		if e, ok := cur.(*xError); ok {
+			if value, ok2 := e.value.(T); ok2 {
+				return value, true
+			}
+		}
+		stack = append(stack, Unwraps(cur)...)
+	}
+
+	var zero T
+	return zero, false
 }
 
 func sieveErrs(errs []error) []error {

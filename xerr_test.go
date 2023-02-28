@@ -121,3 +121,17 @@ func TestWithStacktrace(tt *testing.T) {
 	got := newErr().stack
 	t.Equal(want, got, cmp.Diff(want, got))
 }
+
+func TestGetValue(t *testing.T) {
+	err := New(WithErrs(
+		New(WithMessage("a")),
+		New(WithMessage("b"), WithValue(123)),
+	))
+
+	intGot, intOk := GetValue[int](err)
+	assert.True(t, intOk)
+	assert.Equal(t, 123, intGot)
+
+	_, boolOk := GetValue[bool](err)
+	assert.False(t, boolOk)
+}
