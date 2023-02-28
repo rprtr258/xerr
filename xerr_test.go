@@ -138,7 +138,7 @@ func TestFields(tt *testing.T) {
 			"field3": 3.3,
 		}),
 	)
-	got := Fields(err)
+	got := UnwrapFields(err)
 	want := map[string]any{
 		"field1": 1,
 		"field2": "2",
