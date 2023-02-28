@@ -44,7 +44,7 @@ func TestCombine(tt *testing.T) {
 	err2 := NewM("2")
 	err3 := NewM("3")
 
-	got, ok := As[*xError](Combine(err1, nil, err2, err3, nil))
+	got, ok := As[multierr](Combine(err1, nil, err2, err3, nil))
 	t.True(ok)
 	t.Equal([]error{err1, err2, err3}, got.errs)
 }
@@ -100,7 +100,7 @@ func TestWithStacktrace(tt *testing.T) {
 	err, ok := As[*xError](newErr())
 	t.True(ok)
 
-	got := err.stack
+	got := err.callstack
 	gotFunctions := make([]string, len(got))
 	for i, frame := range got {
 		gotFunctions[i] = frame.Function
