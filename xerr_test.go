@@ -10,26 +10,22 @@ func TestIs(t *testing.T) {
 	exampleErr1 := New(WithMessage("1"))
 	exampleErr2 := New(WithMessage("2"))
 
-	for _, test := range []struct {
-		name   string
+	for name, test := range map[string]struct {
 		err    error
 		target error
 		want   bool
 	}{
-		{
-			name:   "same err",
+		"same err": {
 			err:    exampleErr1,
 			target: exampleErr1,
 			want:   true,
 		},
-		{
-			name:   "unrelated errs",
+		"unrelated errs": {
 			err:    exampleErr1,
 			target: exampleErr2,
 			want:   false,
 		},
-		{
-			name: "wrapped err",
+		"wrapped err": {
 			err: New(
 				WithErr(exampleErr1),
 				WithMessage("3"),
@@ -38,9 +34,8 @@ func TestIs(t *testing.T) {
 			want:   true,
 		},
 	} {
-		t.Run(test.name, func(t *testing.T) {
-			got := Is(test.err, test.target)
-			assert.Equal(t, test.want, got)
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, test.want, Is(test.err, test.target))
 		})
 	}
 }
@@ -63,7 +58,9 @@ func (err myErr) Error() string {
 	return string(err)
 }
 
-func TestAs_myErrSuccess(t *testing.T) {
+func TestAs_myErrSuccess(tt *testing.T) {
+	t := assert.New(tt)
+
 	want := myErr("inside")
 	err := New(
 		WithErr(want),
@@ -71,11 +68,13 @@ func TestAs_myErrSuccess(t *testing.T) {
 	)
 
 	got, ok := As[myErr](err)
-	assert.True(t, ok)
-	assert.Equal(t, want, got)
+	t.True(ok)
+	t.Equal(want, got)
 }
 
-func TestAs_myErrFail(t *testing.T) {
+func TestAs_myErrFail(tt *testing.T) {
+	t := assert.New(tt)
+
 	inside := New(WithMessage("inside"))
 	err := New(
 		WithErr(inside),
@@ -83,5 +82,5 @@ func TestAs_myErrFail(t *testing.T) {
 	)
 
 	_, ok := As[myErr](err)
-	assert.False(t, ok)
+	t.False(ok)
 }
