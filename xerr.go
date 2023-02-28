@@ -123,9 +123,13 @@ func (err *xError) Unwraps() []error {
 
 type option func(*xError)
 
-func WithErr(err error) option {
+func WithErrs(errs ...error) option {
 	return func(xe *xError) {
-		xe.errs = append(xe.errs, err)
+		for _, err := range errs {
+			if err != nil {
+				xe.errs = append(xe.errs, err)
+			}
+		}
 	}
 }
 
@@ -184,14 +188,12 @@ func Combine(errs ...error) error {
 		return nil
 	}
 
-	errList := sieveErrs(errs)
-
-	if len(errList) > 0 {
+	if errList := sieveErrs(errs); len(errList) > 0 {
 		return &xError{
 			errs:    errList,
 			stack:   nil,
 			message: "",
-			fields:  map[string]any{},
+			fields:  nil,
 			at:      time.Time{},
 		}
 	}

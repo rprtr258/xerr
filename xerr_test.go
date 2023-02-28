@@ -27,7 +27,7 @@ func TestIs(t *testing.T) {
 		},
 		"wrapped err": {
 			err: New(
-				WithErr(exampleErr1),
+				WithErrs(exampleErr1),
 				WithMessage("3"),
 			),
 			target: exampleErr1,
@@ -66,7 +66,7 @@ func TestAs(tt *testing.T) {
 	}{
 		"success": {
 			err: New(
-				WithErr(myErr("inside")),
+				WithErrs(myErr("inside")),
 				WithMessage("outside"),
 			),
 			want:   myErr("inside"),
@@ -74,7 +74,7 @@ func TestAs(tt *testing.T) {
 		},
 		"fail": {
 			err: New(
-				WithErr(New(WithMessage("inside"))),
+				WithErrs(New(WithMessage("inside"))),
 				WithMessage("outside"),
 			),
 			want:   nil,
