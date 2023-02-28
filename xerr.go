@@ -105,6 +105,12 @@ func WithMessage(message string) option {
 	}
 }
 
+func WithField(name string, value any) option {
+	return func(xe *xError) {
+		xe.fields[name] = value
+	}
+}
+
 func WithFields(fields map[string]any) option {
 	return func(xe *xError) {
 		for name, value := range fields {
