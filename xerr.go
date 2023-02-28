@@ -229,6 +229,16 @@ func Combine(errs ...error) error {
 	return nil
 }
 
+func Fields(err error) map[string]any {
+	if e, ok := err.(interface {
+		Fields() map[string]any
+	}); ok {
+		return e.Fields()
+	}
+
+	return nil
+}
+
 func Unwrap(err error) error {
 	return errors.Unwrap(err)
 }
