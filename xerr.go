@@ -3,8 +3,9 @@ package xerr
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -28,10 +29,6 @@ type xError struct {
 }
 
 func (err *xError) Fields() map[string]any {
-	return err.fields
-}
-
-func (err *xError) fill() map[string]any {
 	res := make(map[string]any, len(err.fields))
 	for k, v := range err.fields {
 		res[k] = v
@@ -65,7 +62,7 @@ func (err *xError) fill() map[string]any {
 		errMessages := make([]any, len(err.errs))
 		for i, ierr := range err.errs {
 			if xe, ok := ierr.(*xError); ok {
-				errMessages[i] = xe.fill()
+				errMessages[i] = xe.Fields()
 			} else {
 				errMessages[i] = ierr.Error()
 			}
@@ -81,11 +78,9 @@ func (err *xError) fill() map[string]any {
 }
 
 func (err *xError) Error() string {
-	allFields := err.fill()
-
-	bytes, jerr := json.Marshal(allFields)
+	bytes, jerr := json.Marshal(err.Fields())
 	if jerr != nil {
-		return fmt.Sprintf("%#v", err.fields)
+		return spew.Sprint(err)
 	}
 
 	return string(bytes)

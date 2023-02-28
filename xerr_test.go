@@ -138,14 +138,18 @@ func TestFields(tt *testing.T) {
 			"field3": 3.3,
 		}),
 	)
+	got := Fields(err)
 	want := map[string]any{
 		"field1": 1,
 		"field2": "2",
 		"field3": 3.3,
 	}
-	t.Equal(want, Fields(err))
-
-	// check that Error() call does not modify fields
-	_ = err.Error()
-	t.Equal(want, Fields(err))
+	t.Len(got, 8)
+	delete(got, "@value")
+	delete(got, "@message")
+	delete(got, "@caller")
+	delete(got, "@errors")
+	delete(got, "@at")
+	t.Len(got, 3)
+	t.Equal(want, got)
 }
