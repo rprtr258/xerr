@@ -140,7 +140,7 @@ func WithValue(value any) option {
 	}
 }
 
-func New(opts ...option) *xError {
+func New(opts ...option) error {
 	if len(opts) == 0 {
 		return nil
 	}
@@ -160,22 +160,22 @@ func New(opts ...option) *xError {
 	return err
 }
 
-func NewM(message string, opts ...option) *xError {
+func NewM(message string, opts ...option) error {
 	return New(append(opts, WithMessage(message))...)
 }
 
-func NewW(err error, opts ...option) *xError {
+func NewW(err error, opts ...option) error {
 	return New(append(opts, WithErrs(err))...)
 }
 
-func NewWM(err error, message string, opts ...option) *xError {
+func NewWM(err error, message string, opts ...option) error {
 	return New(append(opts,
 		WithErrs(err),
 		WithMessage(message),
 	)...)
 }
 
-func NewF(message string, fields map[string]any, opts ...option) *xError {
+func NewF(message string, fields map[string]any, opts ...option) error {
 	return New(append(opts,
 		WithMessage(message),
 		WithFields(fields),

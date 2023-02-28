@@ -84,7 +84,7 @@ func TestAs(tt *testing.T) {
 	}
 }
 
-func newErr() *xError {
+func newErr() error {
 	return New(WithStack(1))
 }
 
@@ -97,7 +97,10 @@ func TestWithStacktrace(tt *testing.T) {
 		"runtime.goexit",
 	}
 
-	got := newErr().stack
+	err, ok := As[*xError](newErr())
+	t.True(ok)
+
+	got := err.stack
 	gotFunctions := make([]string, len(got))
 	for i, frame := range got {
 		gotFunctions[i] = frame.Function
@@ -140,9 +143,9 @@ func TestFields(tt *testing.T) {
 		"field2": "2",
 		"field3": 3.3,
 	}
-	t.Equal(want, err.Fields())
+	t.Equal(want, Fields(err))
 
 	// check that Error() call does not modify fields
 	_ = err.Error()
-	t.Equal(want, err.Fields())
+	t.Equal(want, Fields(err))
 }
