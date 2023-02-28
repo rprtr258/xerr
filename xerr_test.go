@@ -109,7 +109,7 @@ func TestWithStacktrace(tt *testing.T) {
 func TestGetValue(t *testing.T) {
 	err := New(WithErrs(
 		NewM("a"),
-		New(WithMessage("b"), WithValue(123)),
+		NewM("b", WithValue(123)),
 	))
 
 	intGot, intOk := GetValue[int](err)
