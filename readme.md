@@ -25,4 +25,4 @@ Multiple libraries are around in go to help handling errors. But each one of the
 
 None of them is widely used to support all listed features and/or so is not supported actively. So I wrote all utils funcs I want to use while doing error handling making this lib.
 
-THIS IS MY PERSONAL LIBRARY, EXPECT BREAKING CHANGES AND NO STABILITY. NOT READY AND WON'T BE READY FOR ANY USAGE BESIDES MY PERSONAL PROJECTS.
+# THIS IS MY PERSONAL LIBRARY, EXPECT BREAKING CHANGES AND NO STABILITY. NOT READY AND WON'T BE READY FOR ANY USAGE BESIDES MY PERSONAL PROJECTS.
