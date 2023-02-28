@@ -3,7 +3,6 @@ package xerr
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -113,7 +112,7 @@ func TestWithStacktrace(tt *testing.T) {
 		gotFunctions[i] = frame.Function
 	}
 
-	t.Equal(wantFunctions, gotFunctions, cmp.Diff(wantFunctions, gotFunctions))
+	t.Equal(wantFunctions, gotFunctions)
 }
 
 func TestGetValue(t *testing.T) {
