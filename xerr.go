@@ -155,6 +155,13 @@ func NewWM(err error, message string) *xError {
 	)
 }
 
+func NewF(message string, fields map[string]any) *xError {
+	return New(
+		WithMessage(message),
+		WithFields(fields),
+	)
+}
+
 func GetValue[T any](err error) (T, bool) {
 	stack := []error{err}
 	for len(stack) > 0 {
