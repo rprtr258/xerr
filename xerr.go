@@ -16,13 +16,23 @@ type stackFrame struct {
 	Line     int
 }
 
-func stacktrace() []stackFrame {
+func stacktrace(skip int) []stackFrame {
 	callers := make([]uintptr, _maxStackDepth)
 	length := runtime.Callers(2, callers[:])
+	if length >= len(callers) {
+		return nil
+	}
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
-	stack := make([]stackFrame, 0, len(callers))
+	for i := 0; i < skip; i++ {
+		_, more := frames.Next()
+		if !more {
+			return nil
+		}
+	}
+
+	stack := make([]stackFrame, 0, len(callers)-skip)
 	for {
 		frame, more := frames.Next()
 		stack = append(
@@ -37,6 +47,7 @@ func stacktrace() []stackFrame {
 			break
 		}
 	}
+
 	return stack
 }
 
@@ -133,9 +144,11 @@ func WithErrs(errs ...error) option {
 	}
 }
 
-func WithStack() option {
+func WithStack(skip int) option {
 	return func(xe *xError) {
-		xe.stack = stacktrace()
+		// 1 for this callback
+		// 1 for New function
+		xe.stack = stacktrace(skip + 2)
 	}
 }
 
