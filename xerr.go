@@ -22,7 +22,12 @@ func (err *xError) Fields() map[string]any {
 	return err.fields
 }
 
-func (err *xError) fill() {
+func (err *xError) fill() map[string]any {
+	res := make(map[string]any, len(err.fields))
+	for k, v := range err.fields {
+		res[k] = v
+	}
+
 	if err.stack != nil {
 		frames := make([]map[string]any, len(err.stack))
 		for i, frame := range err.stack {
@@ -32,41 +37,42 @@ func (err *xError) fill() {
 				"line":     frame.Line,
 			}
 		}
-		err.fields["@stacktrace"] = frames
+		res["@stacktrace"] = frames
 	}
 
 	if err.value != nil {
-		err.fields["@value"] = err.value
+		res["@value"] = err.value
 	}
 
 	if err.message != "" {
-		err.fields["@message"] = err.message
+		res["@message"] = err.message
 	}
 
-	err.fields["@caller"] = err.caller
+	res["@caller"] = err.caller
 
 	if len(err.errs) != 0 {
 		errMessages := make([]any, len(err.errs))
 		for i, ierr := range err.errs {
 			if xe, ok := ierr.(*xError); ok {
-				xe.fill()
-				errMessages[i] = xe.fields
+				errMessages[i] = xe.fill()
 			} else {
 				errMessages[i] = ierr.Error()
 			}
 		}
-		err.fields["@errors"] = errMessages
+		res["@errors"] = errMessages
 	}
 
 	if !err.at.IsZero() {
-		err.fields["@at"] = err.at.Format(time.RFC3339)
+		res["@at"] = err.at.Format(time.RFC3339)
 	}
+
+	return res
 }
 
 func (err *xError) Error() string {
-	err.fill()
+	allFields := err.fill()
 
-	bytes, jerr := json.Marshal(err.fields)
+	bytes, jerr := json.Marshal(allFields)
 	if jerr != nil {
 		return fmt.Sprintf("%#v", err.fields)
 	}

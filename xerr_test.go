@@ -141,4 +141,8 @@ func TestFields(tt *testing.T) {
 		"field3": 3.3,
 	}
 	t.Equal(want, err.Fields())
+
+	// check that Error() call does not modify fields
+	_ = err.Error()
+	t.Equal(want, err.Fields())
 }
