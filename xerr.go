@@ -84,7 +84,7 @@ func (err *xError) Fields() map[string]any {
 	}
 
 	if !err.at.IsZero() {
-		res[keyAt] = err.at
+		res[keyAt] = err.at.Format(time.RFC1123)
 	}
 
 	return res
@@ -187,28 +187,70 @@ func New(opts ...option) error {
 
 // NewM - equivalent to New(WithMessage(message), opts...)
 func NewM(message string, opts ...option) error {
-	return New(append(opts, WithMessage(message))...)
+	err := &xError{
+		errs:      nil,
+		callstack: nil,
+		message:   message,
+		fields:    map[string]any{},
+		at:        time.Now().UTC(),
+		caller:    caller(),
+		value:     nil,
+	}
+	for _, opt := range opts {
+		opt(err)
+	}
+	return err
 }
 
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...option) error {
-	return New(append(opts, WithErrs(err))...)
+	res := &xError{
+		errs:      []error{err},
+		callstack: nil,
+		message:   "",
+		fields:    map[string]any{},
+		at:        time.Now().UTC(),
+		caller:    caller(),
+		value:     nil,
+	}
+	for _, opt := range opts {
+		opt(res)
+	}
+	return res
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message string, opts ...option) error {
-	return New(append(opts,
-		WithErrs(err),
-		WithMessage(message),
-	)...)
+	res := &xError{
+		errs:      []error{err},
+		callstack: nil,
+		message:   message,
+		fields:    map[string]any{},
+		at:        time.Now().UTC(),
+		caller:    caller(),
+		value:     nil,
+	}
+	for _, opt := range opts {
+		opt(res)
+	}
+	return res
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
 func NewF(message string, fields map[string]any, opts ...option) error {
-	return New(append(opts,
-		WithMessage(message),
-		WithFields(fields),
-	)...)
+	res := &xError{
+		errs:      nil,
+		callstack: nil,
+		message:   message,
+		fields:    fields,
+		at:        time.Now().UTC(),
+		caller:    caller(),
+		value:     nil,
+	}
+	for _, opt := range opts {
+		opt(res)
+	}
+	return res
 }
 
 // UnwrapValue from err having type T and bool detecting if such value was found.
