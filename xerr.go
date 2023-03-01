@@ -128,8 +128,9 @@ func WithErrs(errs ...error) option {
 func WithStack(skip int) option {
 	return func(xe *xError) {
 		// 1 for this callback
-		// 1 for New function
-		xe.callstack = stacktrace(skip + 2)
+		// 1 for New func
+		// 1 for newx func
+		xe.callstack = stacktrace(skip + 3)
 	}
 }
 

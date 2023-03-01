@@ -92,7 +92,6 @@ func TestWithStacktrace(tt *testing.T) {
 	t := assert.New(tt)
 
 	wantFunctions := []string{
-		"github.com/rprtr258/xerr.newErr", // TODO: fix
 		"github.com/rprtr258/xerr.TestWithStacktrace",
 		"testing.tRunner",
 		"runtime.goexit",
