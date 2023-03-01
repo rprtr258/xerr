@@ -205,7 +205,7 @@ func NewM(message string, opts ...option) error {
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...option) error {
 	res := &xError{
-		errs:      []error{err},
+		errs:      sieveErrs([]error{err}),
 		callstack: nil,
 		message:   "",
 		fields:    map[string]any{},
@@ -222,7 +222,7 @@ func NewW(err error, opts ...option) error {
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message string, opts ...option) error {
 	res := &xError{
-		errs:      []error{err},
+		errs:      sieveErrs([]error{err}),
 		callstack: nil,
 		message:   message,
 		fields:    map[string]any{},
