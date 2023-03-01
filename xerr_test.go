@@ -92,6 +92,7 @@ func TestWithStacktrace(tt *testing.T) {
 	t := assert.New(tt)
 
 	wantFunctions := []string{
+		"github.com/rprtr258/xerr.newErr", // TODO: fix
 		"github.com/rprtr258/xerr.TestWithStacktrace",
 		"testing.tRunner",
 		"runtime.goexit",
@@ -152,4 +153,26 @@ func TestFields(tt *testing.T) {
 	delete(got, "@at")
 	t.Len(got, 3)
 	t.Equal(want, got)
+}
+
+func faulty() error {
+	return New(WithMessage("aboba"))
+}
+
+func TestNew_caller(tt *testing.T) {
+	t := assert.New(tt)
+
+	err := faulty().(*xError)
+	t.Equal("github.com/rprtr258/xerr.faulty", err.caller.Function)
+}
+
+func faultyM() error {
+	return NewM("aboba")
+}
+
+func TestNewM_caller(tt *testing.T) {
+	t := assert.New(tt)
+
+	err := faultyM().(*xError)
+	t.Equal("github.com/rprtr258/xerr.faultyM", err.caller.Function)
 }

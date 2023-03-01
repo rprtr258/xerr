@@ -163,9 +163,7 @@ func WithValue(value any) option {
 	}
 }
 
-// New - creates error with metadata such as caller information and timestamp.
-// Additional metadata can be attached using With* options.
-func New(opts ...option) error {
+func newx(opts ...option) error {
 	if len(opts) == 0 {
 		return nil
 	}
@@ -176,81 +174,39 @@ func New(opts ...option) error {
 		message:   "",
 		fields:    map[string]any{},
 		at:        time.Now().UTC(),
-		caller:    caller(),
+		caller:    caller(1),
 		value:     nil,
 	}
 	for _, opt := range opts {
 		opt(err)
 	}
 	return err
+}
+
+// New - creates error with metadata such as caller information and timestamp.
+// Additional metadata can be attached using With* options.
+func New(opts ...option) error {
+	return newx(opts...)
 }
 
 // NewM - equivalent to New(WithMessage(message), opts...)
 func NewM(message string, opts ...option) error {
-	err := &xError{
-		errs:      nil,
-		callstack: nil,
-		message:   message,
-		fields:    map[string]any{},
-		at:        time.Now().UTC(),
-		caller:    caller(),
-		value:     nil,
-	}
-	for _, opt := range opts {
-		opt(err)
-	}
-	return err
+	return newx(append(opts, WithMessage(message))...)
 }
 
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...option) error {
-	res := &xError{
-		errs:      sieveErrs([]error{err}),
-		callstack: nil,
-		message:   "",
-		fields:    map[string]any{},
-		at:        time.Now().UTC(),
-		caller:    caller(),
-		value:     nil,
-	}
-	for _, opt := range opts {
-		opt(res)
-	}
-	return res
+	return newx(append(opts, WithErrs(err))...)
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message string, opts ...option) error {
-	res := &xError{
-		errs:      sieveErrs([]error{err}),
-		callstack: nil,
-		message:   message,
-		fields:    map[string]any{},
-		at:        time.Now().UTC(),
-		caller:    caller(),
-		value:     nil,
-	}
-	for _, opt := range opts {
-		opt(res)
-	}
-	return res
+	return newx(append(opts, WithErrs(err), WithMessage(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
 func NewF(message string, fields map[string]any, opts ...option) error {
-	res := &xError{
-		errs:      nil,
-		callstack: nil,
-		message:   message,
-		fields:    fields,
-		at:        time.Now().UTC(),
-		caller:    caller(),
-		value:     nil,
-	}
-	for _, opt := range opts {
-		opt(res)
-	}
-	return res
+	return newx(append(opts, WithFields(fields), WithMessage(message))...)
 }
 
 // UnwrapValue from err having type T and bool detecting if such value was found.

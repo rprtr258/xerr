@@ -35,9 +35,9 @@ func stacktrace(skip int) []stackFrame {
 	return stack
 }
 
-func caller() *stackFrame {
+func caller(skip int) *stackFrame {
 	callers := make([]uintptr, 1)
-	length := runtime.Callers(3, callers[:])
+	length := runtime.Callers(3+skip, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
