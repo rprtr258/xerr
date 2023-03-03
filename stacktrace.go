@@ -1,6 +1,9 @@
 package xerr
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 const _maxStackDepth = 50
 
@@ -8,6 +11,14 @@ type stackFrame struct {
 	Function string
 	File     string
 	Line     int
+}
+
+func (sf *stackFrame) String() string {
+	if sf == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s#%s:%d", sf.File, sf.Function, sf.Line)
 }
 
 func stacktrace(skip int) []stackFrame {

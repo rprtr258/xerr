@@ -48,13 +48,9 @@ func (err *xError) Fields() map[string]any {
 	}
 
 	if err.callstack != nil {
-		frames := make([]map[string]any, len(err.callstack))
+		frames := make([]string, len(err.callstack))
 		for i, frame := range err.callstack {
-			frames[i] = map[string]any{
-				"function": frame.Function,
-				"file":     frame.File,
-				"line":     frame.Line,
-			}
+			frames[i] = frame.String()
 		}
 		res[keyStacktrace] = frames
 	}
@@ -68,7 +64,7 @@ func (err *xError) Fields() map[string]any {
 	}
 
 	if err.caller != nil {
-		res[keyCaller] = err.caller
+		res[keyCaller] = err.caller.String()
 	}
 
 	if len(err.errs) != 0 {
