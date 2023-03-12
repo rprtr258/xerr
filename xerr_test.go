@@ -85,7 +85,7 @@ func TestAs(tt *testing.T) {
 }
 
 func newErr() error {
-	return New(WithStack(1))
+	return New(Stacktrace(1))
 }
 
 func TestWithStacktrace(tt *testing.T) {
@@ -112,9 +112,9 @@ func TestWithStacktrace(tt *testing.T) {
 func TestGetValue(tt *testing.T) {
 	t := assert.New(tt)
 
-	err := New(WithErrs(
+	err := New(Errors(
 		NewM("a"),
-		NewM("b", WithValue(123)),
+		NewM("b", Value(123)),
 	))
 
 	intGot, intOk := UnwrapValue[int](err)
@@ -129,11 +129,11 @@ func TestFields(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := New(
-		WithMessage("abc"),
-		WithErrs(nil, NewM("def"), nil),
-		WithValue(404),
-		WithField("field1", 1),
-		WithFields(map[string]any{
+		Message("abc"),
+		Errors(nil, NewM("def"), nil),
+		Value(404),
+		Field("field1", 1),
+		Fields(map[string]any{
 			"field2": "2",
 			"field3": 3.3,
 		}),
@@ -155,7 +155,7 @@ func TestFields(tt *testing.T) {
 }
 
 func faulty() error {
-	return New(WithMessage("aboba"))
+	return New(Message("aboba"))
 }
 
 func TestNew_caller(tt *testing.T) {

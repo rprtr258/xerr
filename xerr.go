@@ -109,8 +109,8 @@ func (err *xError) Unwraps() []error {
 
 type option func(*xError)
 
-// WithErrs - wrap errors list, only not nil errors are added
-func WithErrs(errs ...error) option {
+// Errors - wrap errors list, only not nil errors are added
+func Errors(errs ...error) option {
 	return func(xe *xError) {
 		for _, err := range errs {
 			if err != nil {
@@ -120,8 +120,8 @@ func WithErrs(errs ...error) option {
 	}
 }
 
-// WithStack - add stacktrace
-func WithStack(skip int) option {
+// Stacktrace - add stacktrace
+func Stacktrace(skip int) option {
 	return func(xe *xError) {
 		// 1 for this callback
 		// 1 for New func
@@ -130,22 +130,22 @@ func WithStack(skip int) option {
 	}
 }
 
-// WithMessage - attach error description
-func WithMessage(message string) option {
+// Message - attach error description
+func Message(message string) option {
 	return func(xe *xError) {
 		xe.message = message
 	}
 }
 
-// WithField - attach single field, old field with same name is overwritten
-func WithField(name string, value any) option {
+// Field - attach single field, old field with same name is overwritten
+func Field(name string, value any) option {
 	return func(xe *xError) {
 		xe.fields[name] = value
 	}
 }
 
-// WithFields - attach given fields, old fields with such names are overwritten
-func WithFields(fields map[string]any) option {
+// Fields - attach given fields, old fields with such names are overwritten
+func Fields(fields map[string]any) option {
 	return func(xe *xError) {
 		for name, value := range fields {
 			xe.fields[name] = value
@@ -153,8 +153,8 @@ func WithFields(fields map[string]any) option {
 	}
 }
 
-// WithValue - attach value to error, if value is nil, no value is attached
-func WithValue(value any) option {
+// Value - attach value to error, if value is nil, no value is attached
+func Value(value any) option {
 	return func(xe *xError) {
 		xe.value = value
 	}
@@ -188,22 +188,22 @@ func New(opts ...option) error {
 
 // NewM - equivalent to New(WithMessage(message), opts...)
 func NewM(message string, opts ...option) error {
-	return newx(append(opts, WithMessage(message))...)
+	return newx(append(opts, Message(message))...)
 }
 
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...option) error {
-	return newx(append(opts, WithErrs(err))...)
+	return newx(append(opts, Errors(err))...)
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message string, opts ...option) error {
-	return newx(append(opts, WithErrs(err), WithMessage(message))...)
+	return newx(append(opts, Errors(err), Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
 func NewF(message string, fields map[string]any, opts ...option) error {
-	return newx(append(opts, WithFields(fields), WithMessage(message))...)
+	return newx(append(opts, Fields(fields), Message(message))...)
 }
 
 // UnwrapValue from err having type T and bool detecting if such value was found.

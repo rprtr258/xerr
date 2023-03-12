@@ -9,11 +9,11 @@ go get github.com/rprtr258/xerr
 ## Example usage
 ```go
 err := xerr.New(
-    xerr.WithMessage("user not found"),
-    xerr.WithErrs(sql.NoRows),
-    xerr.WithValue(404),
-    xerr.WithField("trace_id", "abcabcabcabc"),
-    xerr.WithFields(map[string]any{
+    xerr.Message("user not found"),
+    xerr.Errors(sql.NoRows),
+    xerr.Value(404),
+    xerr.Field("trace_id", "abcabcabcabc"),
+    xerr.Fields(map[string]any{
         "user_id": 1234,
         "user_page": "/posts",
     }),
