@@ -107,10 +107,10 @@ func (err *xError) Unwraps() []error {
 	return err.errs
 }
 
-type option func(*xError)
+type Option func(*xError)
 
 // Errors - wrap errors list, only not nil errors are added
-func Errors(errs ...error) option {
+func Errors(errs ...error) Option {
 	return func(xe *xError) {
 		for _, err := range errs {
 			if err != nil {
@@ -121,7 +121,7 @@ func Errors(errs ...error) option {
 }
 
 // Stacktrace - add stacktrace
-func Stacktrace(skip int) option {
+func Stacktrace(skip int) Option {
 	return func(xe *xError) {
 		// 1 for this callback
 		// 1 for New func
@@ -131,21 +131,21 @@ func Stacktrace(skip int) option {
 }
 
 // Message - attach error description
-func Message(message string) option {
+func Message(message string) Option {
 	return func(xe *xError) {
 		xe.message = message
 	}
 }
 
 // Field - attach single field, old field with same name is overwritten
-func Field(name string, value any) option {
+func Field(name string, value any) Option {
 	return func(xe *xError) {
 		xe.fields[name] = value
 	}
 }
 
 // Fields - attach given fields, old fields with such names are overwritten
-func Fields(fields map[string]any) option {
+func Fields(fields map[string]any) Option {
 	return func(xe *xError) {
 		for name, value := range fields {
 			xe.fields[name] = value
@@ -154,13 +154,13 @@ func Fields(fields map[string]any) option {
 }
 
 // Value - attach value to error, if value is nil, no value is attached
-func Value(value any) option {
+func Value(value any) Option {
 	return func(xe *xError) {
 		xe.value = value
 	}
 }
 
-func newx(opts ...option) error {
+func newx(opts ...Option) error {
 	if len(opts) == 0 {
 		return nil
 	}
@@ -182,27 +182,27 @@ func newx(opts ...option) error {
 
 // New - creates error with metadata such as caller information and timestamp.
 // Additional metadata can be attached using With* options.
-func New(opts ...option) error {
+func New(opts ...Option) error {
 	return newx(opts...)
 }
 
 // NewM - equivalent to New(WithMessage(message), opts...)
-func NewM(message string, opts ...option) error {
+func NewM(message string, opts ...Option) error {
 	return newx(append(opts, Message(message))...)
 }
 
 // NewW - equivalent to New(WithErrors(err), opts...)
-func NewW(err error, opts ...option) error {
+func NewW(err error, opts ...Option) error {
 	return newx(append(opts, Errors(err))...)
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
-func NewWM(err error, message string, opts ...option) error {
+func NewWM(err error, message string, opts ...Option) error {
 	return newx(append(opts, Errors(err), Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
-func NewF(message string, fields map[string]any, opts ...option) error {
+func NewF(message string, fields map[string]any, opts ...Option) error {
 	return newx(append(opts, Fields(fields), Message(message))...)
 }
 
