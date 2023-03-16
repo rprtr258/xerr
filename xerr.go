@@ -251,6 +251,7 @@ func As[E error](err error) (E, bool) {
 	return res, ok
 }
 
+// MarshalJSON - marshal error to json
 func MarshalJSON(err error) ([]byte, error) {
 	switch e := err.(type) {
 	case multierr:
