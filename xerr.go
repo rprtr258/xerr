@@ -1,6 +1,7 @@
 package xerr
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"time"
@@ -41,7 +42,11 @@ func (err *xError) Value() any {
 	return err.value
 }
 
-func (err *xError) Fields() map[string]any {
+func (err *xError) MarshalJSON() ([]byte, error) {
+	return MarshalJSON(err)
+}
+
+func (err *xError) toMap() map[string]any {
 	res := make(map[string]any, len(err.fields))
 	for k, v := range err.fields {
 		res[k] = v
@@ -71,7 +76,7 @@ func (err *xError) Fields() map[string]any {
 		errMessages := make([]any, len(err.errs))
 		for i, ierr := range err.errs {
 			if xe, ok := ierr.(*xError); ok {
-				errMessages[i] = xe.Fields()
+				errMessages[i] = xe.toMap()
 			} else {
 				errMessages[i] = ierr.Error()
 			}
@@ -87,7 +92,7 @@ func (err *xError) Fields() map[string]any {
 }
 
 func (err *xError) Error() string {
-	bytes, jerr := json.Marshal(err.Fields())
+	bytes, jerr := json.Marshal(err.toMap())
 	if jerr != nil {
 		return spew.Sprint(err)
 	}
@@ -229,18 +234,6 @@ func UnwrapValue[T any](err error) (T, bool) {
 	return zero, false
 }
 
-// UnwrapFields using `UnwrapFields() map[string]any` method. So errors
-// constructed with New(WithField/WithFields...) will return those fields.
-func UnwrapFields(err error) map[string]any {
-	if e, ok := err.(interface {
-		Fields() map[string]any
-	}); ok {
-		return e.Fields()
-	}
-
-	return nil
-}
-
 // Unwrap is alias to "errors".Unwrap
 func Unwrap(err error) error {
 	return errors.Unwrap(err)
@@ -256,4 +249,29 @@ func As[E error](err error) (E, bool) {
 	var res E
 	ok := errors.As(err, &res)
 	return res, ok
+}
+
+func MarshalJSON(err error) ([]byte, error) {
+	switch e := err.(type) {
+	case multierr:
+		var b bytes.Buffer
+		b.WriteRune('[')
+		for i, ee := range e.errs {
+			bb, errr := MarshalJSON(ee)
+			if errr != nil {
+				return nil, errr
+			}
+
+			if i > 0 {
+				b.WriteRune(',')
+			}
+			b.Write(bb)
+		}
+		b.WriteRune(']')
+		return b.Bytes(), nil
+	case *xError:
+		return json.Marshal(e.toMap())
+	default:
+		return json.Marshal(e.Error())
+	}
 }

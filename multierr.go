@@ -1,9 +1,15 @@
 package xerr
 
-import "strings"
+import (
+	"strings"
+)
 
 type multierr struct {
 	errs []error
+}
+
+func (err multierr) MarshalJSON() ([]byte, error) {
+	return MarshalJSON(err)
 }
 
 func (err multierr) Error() string {

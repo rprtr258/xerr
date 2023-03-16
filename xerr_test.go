@@ -1,6 +1,8 @@
 package xerr
 
 import (
+	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -138,7 +140,7 @@ func TestFields(tt *testing.T) {
 			"field3": 3.3,
 		}),
 	)
-	got := UnwrapFields(err)
+	got := err.(*xError).toMap()
 	want := map[string]any{
 		"field1": 1,
 		"field2": "2",
@@ -174,4 +176,54 @@ func TestNewM_caller(tt *testing.T) {
 
 	err := faultyM().(*xError)
 	t.Equal("github.com/rprtr258/xerr.faultyM", err.caller.Function)
+}
+
+func TestMarshalJSON(t *testing.T) {
+	for name, test := range map[string]struct {
+		err  error
+		want string
+	}{
+		"foreign error": {
+			err:  errors.New("a"),
+			want: `"a"`,
+		},
+		"nested multierr": {
+			err: Combine(
+				errors.New("a"),
+				Combine(
+					errors.New("b"),
+					errors.New("c"),
+				),
+			),
+			want: `["a",["b","c"]]`,
+		},
+		// TODO: test *xErr
+		// "xerr": {
+		// 	err: New(
+		// 		Message("a"),
+		// 		Field("b", 3),
+		// 		Errors(errors.New("c")),
+		// 		Value(404),
+		// 	),
+		// 	want: `{"@at":"Thu, 16 Mar 2023 01:50:09 UTC","@caller":"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestMarshalJSON:200","@errors":["c"],"@message":"a","@value":404,"b":3}`,
+		// },
+	} {
+		t.Run(name, func(t *testing.T) {
+			got, err := MarshalJSON(test.err)
+			assert.NoError(t, err)
+			assert.Equal(t, test.want, string(got))
+		})
+	}
+}
+
+func TestJSON(t *testing.T) {
+	got, err := json.Marshal(Combine(
+		errors.New("a"),
+		Combine(
+			errors.New("b"),
+			errors.New("c"),
+		),
+	))
+	assert.NoError(t, err)
+	assert.Equal(t, `["a",["b","c"]]`, string(got))
 }
