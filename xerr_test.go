@@ -158,25 +158,25 @@ func TestFields(tt *testing.T) {
 }
 
 func faulty() error {
-	return New(Message("aboba"))
+	return New(Message("aboba"), CallerSkip(1))
 }
 
 func TestNew_caller(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := faulty().(*xError)
-	t.Equal("github.com/rprtr258/xerr.faulty", err.caller.Function)
+	t.Equal("github.com/rprtr258/xerr.TestNew_caller", err.caller.Function)
 }
 
 func faultyM() error {
-	return NewM("aboba")
+	return NewM("aboba", CallerSkip(1))
 }
 
 func TestNewM_caller(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := faultyM().(*xError)
-	t.Equal("github.com/rprtr258/xerr.faultyM", err.caller.Function)
+	t.Equal("github.com/rprtr258/xerr.TestNewM_caller", err.caller.Function)
 }
 
 func TestMarshalJSON(t *testing.T) {
