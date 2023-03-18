@@ -155,14 +155,32 @@ func (err *xError) Unwraps() []error {
 	return err.errs
 }
 
-type Option func(*xError)
+type xErrorConfig struct {
+	// errs list of wrapped errors
+	errs []error
+	// callstack of error origin, if constructed with WithStack
+	callstack []stackFrame
+	// message describing error, added using WithMessage
+	message string
+	// fields added using WithField and WithFields
+	fields map[string]any
+	// at - error creation timestamp
+	at time.Time
+	// callerSkip - how many skips before getting caller
+	callerSkip int
+	// value attached to error, nil if none
+	// Warning: if nil is attached, value is still nil
+	value any
+}
+
+type Option func(*xErrorConfig)
 
 // Errors - wrap errors list, only not nil errors are added
 func Errors(errs ...error) Option {
-	return func(xe *xError) {
+	return func(c *xErrorConfig) {
 		for _, err := range errs {
 			if err != nil {
-				xe.errs = append(xe.errs, err)
+				c.errs = append(c.errs, err)
 			}
 		}
 	}
@@ -170,41 +188,48 @@ func Errors(errs ...error) Option {
 
 // Stacktrace - add stacktrace
 func Stacktrace(skip int) Option {
-	return func(xe *xError) {
+	return func(c *xErrorConfig) {
 		// 1 for this callback
 		// 1 for New func
 		// 1 for newx func
-		xe.callstack = stacktrace(skip + 3)
+		c.callstack = stacktrace(skip + 3)
+	}
+}
+
+// CallerSkip - add caller skip
+func CallerSkip(skip int) Option {
+	return func(c *xErrorConfig) {
+		c.callerSkip += skip
 	}
 }
 
 // Message - attach error description
 func Message(message string) Option {
-	return func(xe *xError) {
-		xe.message = message
+	return func(c *xErrorConfig) {
+		c.message = message
 	}
 }
 
 // Field - attach single field, old field with same name is overwritten
 func Field(name string, value any) Option {
-	return func(xe *xError) {
-		xe.fields[name] = value
+	return func(c *xErrorConfig) {
+		c.fields[name] = value
 	}
 }
 
 // Fields - attach given fields, old fields with such names are overwritten
 func Fields(fields map[string]any) Option {
-	return func(xe *xError) {
+	return func(c *xErrorConfig) {
 		for name, value := range fields {
-			xe.fields[name] = value
+			c.fields[name] = value
 		}
 	}
 }
 
 // Value - attach value to error, if value is nil, no value is attached
 func Value(value any) Option {
-	return func(xe *xError) {
-		xe.value = value
+	return func(c *xErrorConfig) {
+		c.value = value
 	}
 }
 
@@ -213,19 +238,28 @@ func newx(opts ...Option) error {
 		return nil
 	}
 
-	err := &xError{
-		errs:      nil,
-		callstack: nil,
-		message:   "",
-		fields:    map[string]any{},
-		at:        time.Now().UTC(),
-		caller:    caller(1),
-		value:     nil,
+	config := &xErrorConfig{
+		errs:       nil,
+		callstack:  nil,
+		message:    "",
+		fields:     map[string]any{},
+		at:         time.Now().UTC(),
+		callerSkip: 1,
+		value:      nil,
 	}
 	for _, opt := range opts {
-		opt(err)
+		opt(config)
 	}
-	return err
+
+	return &xError{
+		errs:      config.errs,
+		callstack: config.callstack,
+		message:   config.message,
+		fields:    config.fields,
+		at:        config.at,
+		caller:    caller(config.callerSkip),
+		value:     config.value,
+	}
 }
 
 // New - creates error with metadata such as caller information and timestamp.
