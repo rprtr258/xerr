@@ -3,6 +3,7 @@ package xerr
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -226,4 +227,53 @@ func TestJSON(t *testing.T) {
 	))
 	assert.NoError(t, err)
 	assert.Equal(t, `["a",["b","c"]]`, string(got))
+}
+
+func concat(parts ...[]string) []string {
+	res := []string(nil)
+	for _, part := range parts {
+		res = append(res, part...)
+	}
+	return res
+}
+
+func TestXErr_Error(t *testing.T) {
+	err := New(
+		Message("aboba"),
+		Errors(NewM("123"), NewM("lol")),
+		Field("code", 404),
+	)
+	rawWords := strings.Split(err.Error(), " ")
+	words := concat(rawWords[:1], rawWords[6:10], rawWords[15:18], rawWords[23:])
+
+	assert.Equal(t,
+		[]string{
+			/*  0 */ "aboba",
+			/*  1 */ // "at=Sat,",
+			/*  2 */ // "18",
+			/*  3 */ // "Mar",
+			/*  4 */ // "2023",
+			/*  5 */ // "10:01:40",
+			/*  6 */ "UTC",
+			/*  7 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:241",
+			/*  8 */ "code=404",
+			/*  9 */ "errs=[123",
+			/* 10 */ // "at=Sat,",
+			/* 11 */ // "18",
+			/* 12 */ // "Mar",
+			/* 13 */ // "2023",
+			/* 14 */ // "10:01:40",
+			/* 15 */ "UTC",
+			/* 16 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:243;",
+			/* 17 */ "lol",
+			/* 18 */ // "at=Sat,",
+			/* 19 */ // "18",
+			/* 20 */ // "Mar",
+			/* 21 */ // "2023",
+			/* 22 */ // "10:01:40",
+			/* 23 */ "UTC",
+			/* 24 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:243]",
+		},
+		words,
+	)
 }

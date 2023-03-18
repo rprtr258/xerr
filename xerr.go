@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 // special metadata keys
@@ -92,12 +92,55 @@ func (err *xError) toMap() map[string]any {
 }
 
 func (err *xError) Error() string {
-	bytes, jerr := json.Marshal(err.toMap())
-	if jerr != nil {
-		return spew.Sprint(err)
+	var sb strings.Builder
+
+	if err.message != "" {
+		sb.WriteString(err.message)
 	}
 
-	return string(bytes)
+	if !err.at.IsZero() {
+		sb.WriteString(" at=")
+		sb.WriteString(err.at.Format(time.RFC1123))
+	}
+
+	if err.caller != nil {
+		sb.WriteString(" caller=")
+		sb.WriteString(err.caller.String())
+	}
+
+	if err.value != nil {
+		err.fields[keyValue] = err.value
+	}
+
+	if len(err.fields) > 0 {
+		for k, v := range err.fields {
+			sb.WriteString(" ")
+			sb.WriteString(k)
+			sb.WriteString("=")
+			sb.WriteString(fmt.Sprintf("%+v", v))
+		}
+	}
+
+	if len(err.errs) != 0 {
+		sb.WriteString(" errs=[")
+		sb.WriteString(err.errs[0].Error())
+		for _, e := range err.errs[1:] {
+			sb.WriteString("; ")
+			sb.WriteString(e.Error())
+		}
+		sb.WriteString("]")
+	}
+
+	if err.callstack != nil {
+		sb.WriteString(" stacktrace=[")
+		for _, frame := range err.callstack {
+			sb.WriteString(frame.String())
+			sb.WriteString("; ")
+		}
+		sb.WriteString("]")
+	}
+
+	return sb.String()
 }
 
 func (err *xError) Unwrap() error {
