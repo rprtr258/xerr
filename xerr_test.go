@@ -115,10 +115,10 @@ func TestWithStacktrace(tt *testing.T) {
 func TestGetValue(tt *testing.T) {
 	t := assert.New(tt)
 
-	err := New(Errors(
+	err := New(Errors{
 		NewM("a"),
 		NewM("b", Value(123)),
-	))
+	})
 
 	intGot, intOk := UnwrapValue[int](err)
 	t.True(intOk)
@@ -133,13 +133,13 @@ func TestFields(tt *testing.T) {
 
 	err := New(
 		Message("abc"),
-		Errors(nil, NewM("def"), nil),
+		Errors{nil, NewM("def"), nil},
 		Value(404),
-		Field("field1", 1),
-		Fields(map[string]any{
+		Fields{"field1": 1},
+		Fields{
 			"field2": "2",
 			"field3": 3.3,
-		}),
+		},
 	)
 	got := err.(*xError).toMap()
 	want := map[string]any{
@@ -240,8 +240,8 @@ func concat(parts ...[]string) []string {
 func TestXErr_Error(t *testing.T) {
 	err := New(
 		Message("aboba"),
-		Errors(NewM("123"), NewM("lol")),
-		Field("code", 404),
+		Errors{NewM("123"), NewM("lol")},
+		Fields{"code": 404},
 	)
 	rawWords := strings.Split(err.Error(), " ")
 	words := concat(rawWords[:1], rawWords[6:10], rawWords[15:18], rawWords[23:])

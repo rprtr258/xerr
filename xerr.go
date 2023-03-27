@@ -173,63 +173,82 @@ type xErrorConfig struct {
 	value any
 }
 
-type Option func(*xErrorConfig)
+type Option interface {
+	apply(*xErrorConfig)
+}
 
 // Errors - wrap errors list, only not nil errors are added
-func Errors(errs ...error) Option {
-	return func(c *xErrorConfig) {
-		for _, err := range errs {
-			if err != nil {
-				c.errs = append(c.errs, err)
-			}
+type Errors []error
+
+func (o Errors) apply(c *xErrorConfig) {
+	for _, err := range o {
+		if err != nil {
+			c.errs = append(c.errs, err)
 		}
 	}
+}
+
+type stacktraceOpt struct {
+	skip int
+}
+
+func (o stacktraceOpt) apply(c *xErrorConfig) {
+	// 1 for this callback
+	// 1 for New func
+	// 1 for newx func
+	c.callstack = stacktrace(o.skip + 3)
 }
 
 // Stacktrace - add stacktrace
 func Stacktrace(skip int) Option {
-	return func(c *xErrorConfig) {
-		// 1 for this callback
-		// 1 for New func
-		// 1 for newx func
-		c.callstack = stacktrace(skip + 3)
+	return stacktraceOpt{
+		skip: skip,
 	}
+}
+
+type callerSkipOpt struct {
+	skip int
+}
+
+func (o callerSkipOpt) apply(c *xErrorConfig) {
+	c.callerSkip += o.skip
 }
 
 // CallerSkip - add caller skip
 func CallerSkip(skip int) Option {
-	return func(c *xErrorConfig) {
-		c.callerSkip += skip
+	return callerSkipOpt{
+		skip: skip,
 	}
 }
+
+type Message string
 
 // Message - attach error description
-func Message(message string) Option {
-	return func(c *xErrorConfig) {
-		c.message = message
-	}
+func (o Message) apply(c *xErrorConfig) {
+	c.message = string(o)
 }
 
-// Field - attach single field, old field with same name is overwritten
-func Field(name string, value any) Option {
-	return func(c *xErrorConfig) {
+// Fields - attach given fields, old fields with such names are overwritten
+type Fields map[string]any
+
+func (o Fields) apply(c *xErrorConfig) {
+	for name, value := range o {
 		c.fields[name] = value
 	}
 }
 
-// Fields - attach given fields, old fields with such names are overwritten
-func Fields(fields map[string]any) Option {
-	return func(c *xErrorConfig) {
-		for name, value := range fields {
-			c.fields[name] = value
-		}
-	}
+// Value - attach value to error, if value is nil, no value is attached
+type valueOpt struct {
+	value any
 }
 
-// Value - attach value to error, if value is nil, no value is attached
+func (o valueOpt) apply(c *xErrorConfig) {
+	c.value = o.value
+}
+
 func Value(value any) Option {
-	return func(c *xErrorConfig) {
-		c.value = value
+	return valueOpt{
+		value: value,
 	}
 }
 
@@ -248,7 +267,7 @@ func newx(opts ...Option) error {
 		value:      nil,
 	}
 	for _, opt := range opts {
-		opt(config)
+		opt.apply(config)
 	}
 
 	return &xError{
@@ -275,12 +294,12 @@ func NewM(message string, opts ...Option) error {
 
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...Option) error {
-	return newx(append(opts, Errors(err))...)
+	return newx(append(opts, Errors{err})...)
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message string, opts ...Option) error {
-	return newx(append(opts, Errors(err), Message(message))...)
+	return newx(append(opts, Errors{err}, Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
