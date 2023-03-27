@@ -12,18 +12,18 @@ err := xerr.New(
     xerr.Message("user not found"),
     xerr.Errors(sql.NoRows),
     xerr.Value(404),
-    xerr.Field("trace_id", "abcabcabcabc"),
-    xerr.Fields(map[string]any{
+    xerr.Fields{"trace_id": "abcabcabcabc"},
+    xerr.Fields{
         "user_id": 1234,
         "user_page": "/posts",
-    }),
+    },
 )
 ```
 
 Trace id can be added as option from context in following way:
 ```go
 func WithTrace(ctx) xerr.Option {
-    return WithFields(map[string]any{"trace_id": fromCtx(ctx)})
+    return xerr.Fields{"trace_id": fromCtx(ctx)}
 }
 ```
 
