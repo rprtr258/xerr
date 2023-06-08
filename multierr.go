@@ -32,7 +32,7 @@ func (err multierr) Unwrap() error {
 // Combine multiple errs into single one. If no errors are passed or all of them
 // are nil, nil is returned.
 func Combine(errs ...error) error {
-	if errList := sieveErrs(errs); len(errList) > 0 {
+	if errList := appendErrs(nil, errs); len(errList) > 0 {
 		return multierr{
 			errs: errList,
 		}
@@ -49,12 +49,12 @@ func AppendInto(into *error, errs ...error) {
 	}
 
 	if multierror, ok := As[multierr](*into); ok {
-		multierror.errs = append(multierror.errs, sieveErrs(errs)...)
+		multierror.errs = appendErrs(multierror.errs, errs)
 		return
 	}
 
 	if multierror, ok := As[*xError](*into); ok {
-		multierror.errs = append(multierror.errs, sieveErrs(errs)...)
+		multierror.errs = appendErrs(multierror.errs, errs)
 		return
 	}
 
@@ -83,17 +83,24 @@ func Unwraps(err error) []error {
 	return nil
 }
 
-// sieveErrs - filter out nil errors
-func sieveErrs(errs []error) []error {
-	if len(errs) == 0 {
-		return nil
-	}
-
-	errList := make([]error, 0, len(errs))
+// appendErrs - filter out nil errors
+func appendErrs(into []error, errs []error) []error {
+	cnt := 0
 	for _, err := range errs {
 		if err != nil {
-			errList = append(errList, err)
+			cnt++
 		}
 	}
-	return errList
+
+	res := into
+	if cap(res)-len(res) < cnt {
+		res = make([]error, 0, len(into)+cnt)
+		copy(res, into)
+	}
+	for _, err := range errs {
+		if err != nil {
+			res = append(res, err)
+		}
+	}
+	return res
 }
