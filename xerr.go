@@ -154,6 +154,14 @@ func (err *xError) Unwraps() []error {
 	return err.errs
 }
 
+func (err *xError) UnwrapFields() (string, map[string]any) {
+	// TODO: simplify
+	fields := err.toMap()
+	delete(fields, keyMessage)
+	return err.message, fields
+}
+
+// TODO: simplify
 type xErrorConfig struct {
 	// errs list of wrapped errors
 	errs []error
@@ -332,6 +340,15 @@ func UnwrapValue[T any](err error) (T, bool) {
 // Unwrap is alias to "errors".Unwrap
 func Unwrap(err error) error {
 	return errors.Unwrap(err)
+}
+
+func UnwrapFields(err error) (string, map[string]any) {
+	if e, ok := err.(interface {
+		UnwrapFields() (string, map[string]any)
+	}); ok {
+		return e.UnwrapFields()
+	}
+	return err.Error(), nil
 }
 
 // Is - alias for "errors".Is func
