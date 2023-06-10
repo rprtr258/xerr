@@ -1,6 +1,8 @@
 package xerr
 
 import (
+	"bytes"
+	"strconv"
 	"strings"
 )
 
@@ -9,7 +11,27 @@ type multierr struct {
 }
 
 func (err multierr) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(err)
+	var b bytes.Buffer
+	b.WriteRune('[')
+	for i, ee := range err.errs {
+		if i > 0 {
+			b.WriteRune(',')
+		}
+		if eee, ok := ee.(interface {
+			MarshalJSON() ([]byte, error)
+		}); ok {
+			bb, errr := eee.MarshalJSON()
+			if errr != nil {
+				return nil, errr
+			}
+
+			b.Write(bb)
+		} else {
+			b.Write([]byte(strconv.Quote(ee.Error())))
+		}
+	}
+	b.WriteRune(']')
+	return b.Bytes(), nil
 }
 
 func (err multierr) Error() string {

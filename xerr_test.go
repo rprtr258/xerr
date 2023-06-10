@@ -184,10 +184,6 @@ func TestMarshalJSON(t *testing.T) {
 		err  error
 		want string
 	}{
-		"foreign error": {
-			err:  errors.New("a"),
-			want: `"a"`,
-		},
 		"nested multierr": {
 			err: Combine(
 				errors.New("a"),
@@ -210,7 +206,7 @@ func TestMarshalJSON(t *testing.T) {
 		// },
 	} {
 		t.Run(name, func(t *testing.T) {
-			got, err := MarshalJSON(test.err)
+			got, err := json.Marshal(test.err)
 			assert.NoError(t, err)
 			assert.Equal(t, test.want, string(got))
 		})
@@ -255,7 +251,7 @@ func TestXErr_Error(t *testing.T) {
 			/*  4 */ // "2023",
 			/*  5 */ // "10:01:40",
 			/*  6 */ "UTC",
-			/*  7 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:241",
+			/*  7 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:237",
 			/*  8 */ "code=404",
 			/*  9 */ "errs=[123",
 			/* 10 */ // "at=Sat,",
@@ -264,7 +260,7 @@ func TestXErr_Error(t *testing.T) {
 			/* 13 */ // "2023",
 			/* 14 */ // "10:01:40",
 			/* 15 */ "UTC",
-			/* 16 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:243;",
+			/* 16 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:239;",
 			/* 17 */ "lol",
 			/* 18 */ // "at=Sat,",
 			/* 19 */ // "18",
@@ -272,7 +268,7 @@ func TestXErr_Error(t *testing.T) {
 			/* 21 */ // "2023",
 			/* 22 */ // "10:01:40",
 			/* 23 */ "UTC",
-			/* 24 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:243]",
+			/* 24 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:239]",
 		},
 		words,
 	)

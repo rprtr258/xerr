@@ -1,7 +1,6 @@
 package xerr
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -43,7 +42,7 @@ func (err *xError) Value() any {
 }
 
 func (err *xError) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(err)
+	return json.Marshal(err.toMap())
 }
 
 func (err *xError) toMap() map[string]any {
@@ -345,30 +344,4 @@ func As[E error](err error) (E, bool) {
 	var res E
 	ok := errors.As(err, &res)
 	return res, ok
-}
-
-// MarshalJSON - marshal error to json
-func MarshalJSON(err error) ([]byte, error) {
-	switch e := err.(type) {
-	case multierr:
-		var b bytes.Buffer
-		b.WriteRune('[')
-		for i, ee := range e.errs {
-			bb, errr := MarshalJSON(ee)
-			if errr != nil {
-				return nil, errr
-			}
-
-			if i > 0 {
-				b.WriteRune(',')
-			}
-			b.Write(bb)
-		}
-		b.WriteRune(']')
-		return b.Bytes(), nil
-	case *xError:
-		return json.Marshal(e.toMap())
-	default:
-		return json.Marshal(e.Error())
-	}
 }
