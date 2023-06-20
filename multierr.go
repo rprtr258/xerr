@@ -51,6 +51,14 @@ func (err multierr) Unwrap() error {
 	return err.errs[0]
 }
 
+func (err multierr) UnwrapFields() (string, map[string]any) {
+	fields := make(map[string]any, len(err.errs))
+	for i, e := range err.errs {
+		fields[strconv.Itoa(i)] = e
+	}
+	return "", fields
+}
+
 // Combine multiple errs into single one. If no errors are passed or all of them
 // are nil, nil is returned.
 func Combine(errs ...error) error {
