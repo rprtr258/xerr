@@ -72,15 +72,7 @@ func (err *xError) toMap() map[string]any {
 	}
 
 	if len(err.errs) != 0 {
-		errMessages := make([]any, len(err.errs))
-		for i, ierr := range err.errs {
-			if xe, ok := ierr.(*xError); ok {
-				errMessages[i] = xe.toMap()
-			} else {
-				errMessages[i] = ierr.Error()
-			}
-		}
-		res[keyErrors] = errMessages
+		res[keyErrors] = err.errs
 	}
 
 	if !err.at.IsZero() {

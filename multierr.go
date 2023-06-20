@@ -88,6 +88,11 @@ func AppendInto(into *error, errs ...error) {
 		return
 	}
 
+	if len(errs) == 1 {
+		*into = errs[0]
+		return
+	}
+
 	*into = Combine(append(errs, *into)...)
 }
 
