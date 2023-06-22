@@ -6,13 +6,9 @@ import (
 	"sync"
 )
 
-type funcID struct {
-	Function string
-	File     string
-}
-
 var (
-	_helperPCs = map[funcID]struct{}{}
+	// _helperPCs - helper functions names
+	_helperPCs = map[string]struct{}{}
 	helpersMu  = &sync.Mutex{}
 )
 
@@ -26,10 +22,7 @@ func Helper() {
 	}
 	frames := runtime.CallersFrames(pc[:])
 	frame, _ := frames.Next()
-	_helperPCs[funcID{
-		Function: frame.Function,
-		File:     frame.File,
-	}] = struct{}{}
+	_helperPCs[frame.Function] = struct{}{}
 }
 
 const _maxStackDepth = 50
@@ -82,24 +75,19 @@ func getCaller() *stackFrame {
 
 	frames := runtime.CallersFrames(callers)
 	for {
-		rawFrame, more := frames.Next()
+		frame, more := frames.Next()
 		if !more {
 			break
 		}
 
-		funcID := funcID{
-			Function: rawFrame.Function,
-			File:     rawFrame.File,
-		}
-
-		if _, ok := _helperPCs[funcID]; ok {
+		if _, ok := _helperPCs[frame.Function]; ok {
 			continue
 		}
 
 		return &stackFrame{
-			Function: rawFrame.Function,
-			File:     rawFrame.File,
-			Line:     rawFrame.Line,
+			Function: frame.Function,
+			File:     frame.File,
+			Line:     frame.Line,
 		}
 	}
 
