@@ -1,3 +1,3 @@
 .PHONY: test
 test:
-	go test -v ./...
+	@go run gotest.tools/gotestsum@latest

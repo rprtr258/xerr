@@ -130,8 +130,7 @@ func TestFields(tt *testing.T) {
 		"field2": "2",
 		"field3": 3.3,
 	}
-	t.Len(got, 8)
-	delete(got, "@value")
+	t.Len(got, 7)
 	delete(got, "@message")
 	delete(got, "@caller")
 	delete(got, "@errors")
@@ -183,9 +182,8 @@ func TestMarshalJSON(t *testing.T) {
 		// 		Message("a"),
 		// 		Field("b", 3),
 		// 		Errors(errors.New("c")),
-		// 		Value(404),
 		// 	),
-		// 	want: `{"@at":"Thu, 16 Mar 2023 01:50:09 UTC","@caller":"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestMarshalJSON:200","@errors":["c"],"@message":"a","@value":404,"b":3}`,
+		// 	want: `{"@at":"Thu, 16 Mar 2023 01:50:09 UTC","@caller":"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestMarshalJSON:200","@errors":["c"],"@message":"a","b":3}`,
 		// },
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -234,7 +232,7 @@ func TestXErr_Error(t *testing.T) {
 			/*  4 */ // "2023",
 			/*  5 */ // "10:01:40",
 			/*  6 */ "UTC",
-			/*  7 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:237",
+			/*  7 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:218",
 			/*  8 */ "code=404",
 			/*  9 */ "errs=[123",
 			/* 10 */ // "at=Sat,",
@@ -243,7 +241,7 @@ func TestXErr_Error(t *testing.T) {
 			/* 13 */ // "2023",
 			/* 14 */ // "10:01:40",
 			/* 15 */ "UTC",
-			/* 16 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:239;",
+			/* 16 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:220;",
 			/* 17 */ "lol",
 			/* 18 */ // "at=Sat,",
 			/* 19 */ // "18",
@@ -251,7 +249,7 @@ func TestXErr_Error(t *testing.T) {
 			/* 21 */ // "2023",
 			/* 22 */ // "10:01:40",
 			/* 23 */ "UTC",
-			/* 24 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:239]",
+			/* 24 */ "caller=/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:220]",
 		},
 		words,
 	)
