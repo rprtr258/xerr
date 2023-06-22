@@ -17,6 +17,8 @@ var (
 	keyAt         = "@at"
 )
 
+var _ error = (*xError)(nil)
+
 // xError - main structure containing error with metadata
 type xError struct {
 	// errs list of wrapped errors
@@ -217,7 +219,7 @@ func (o Fields) apply(c *xErrorConfig) {
 	}
 }
 
-func newx(opts ...Option) error {
+func newx(opts ...Option) *xError {
 	if len(opts) == 0 {
 		return nil
 	}
@@ -246,7 +248,7 @@ func newx(opts ...Option) error {
 
 // New - creates error with metadata such as caller information and timestamp.
 // Additional metadata can be attached using With* options.
-func New(opts ...Option) error {
+func New(opts ...Option) *xError {
 	return newx(opts...)
 }
 
@@ -284,14 +286,16 @@ func UnwrapFields(err error) (string, map[string]any) {
 	return err.Error(), nil
 }
 
-// Is - alias for "errors".Is func
-func Is(err, target error) bool {
-	return errors.Is(err, target)
+// Is - checks target type for type E. Note: that differs from "errors".Is.
+// This function does not use Unwrap. To compare errors use ==.
+func Is[E error](err error) bool {
+	_, ok := err.(E)
+	return ok
 }
 
-// As - generic alias to "errors".As func
+// As - get error as type E. Note: that differs from "errors".As.
+// This function does not use Unwrap.
 func As[E error](err error) (E, bool) {
-	var res E
-	ok := errors.As(err, &res)
+	res, ok := err.(E)
 	return res, ok
 }

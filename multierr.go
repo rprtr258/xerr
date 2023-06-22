@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var _ error = (*multierr)(nil)
+
 type multierr struct {
 	errs []error
 }
@@ -61,9 +63,9 @@ func (err multierr) UnwrapFields() (string, map[string]any) {
 
 // Combine multiple errs into single one. If no errors are passed or all of them
 // are nil, nil is returned.
-func Combine(errs ...error) error {
+func Combine(errs ...error) *multierr {
 	if errList := appendErrs(nil, errs); len(errList) > 0 {
-		return multierr{
+		return &multierr{
 			errs: errList,
 		}
 	}
@@ -78,22 +80,23 @@ func AppendInto(into *error, errs ...error) {
 		panic("AppendInto: trying to append into nil")
 	}
 
-	if multierror, ok := As[multierr](*into); ok {
-		multierror.errs = appendErrs(multierror.errs, errs)
+	if *into == nil {
+		if len(errs) == 1 {
+			*into = errs[0]
+		} else {
+			*into = Combine(errs...)
+		}
 		return
 	}
 
-	if multierror, ok := As[*xError](*into); ok {
-		multierror.errs = appendErrs(multierror.errs, errs)
-		return
+	switch err := (*into).(type) {
+	case *multierr:
+		err.errs = append(err.errs, errs...)
+	case *xError:
+		err.errs = appendErrs(err.errs, errs)
+	default:
+		*into = Combine(append(errs, *into)...)
 	}
-
-	if len(errs) == 1 {
-		*into = errs[0]
-		return
-	}
-
-	*into = Combine(append(errs, *into)...)
 }
 
 // AppendFunc - append result of calling f into `into`, `into` must be not nil
