@@ -253,7 +253,7 @@ func New(opts ...Option) *xError {
 }
 
 // NewM - equivalent to New(WithMessage(message), opts...)
-func NewM(message string, opts ...Option) error {
+func NewM(message Message, opts ...Option) error {
 	return newx(append(opts, Message(message))...)
 }
 
@@ -263,12 +263,12 @@ func NewW(err error, opts ...Option) error {
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
-func NewWM(err error, message string, opts ...Option) error {
+func NewWM(err error, message Message, opts ...Option) error {
 	return newx(append(opts, Errors{err}, Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
-func NewF(message string, fields map[string]any, opts ...Option) error {
+func NewF(message Message, fields map[string]any, opts ...Option) error {
 	return newx(append(opts, Fields(fields), Message(message))...)
 }
 

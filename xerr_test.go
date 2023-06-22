@@ -135,13 +135,13 @@ func TestJSON(t *testing.T) {
 	assert.Equal(t, `["a",["b","c"]]`, string(got))
 }
 
-func concat(parts ...[]string) []string {
-	res := []string(nil)
-	for _, part := range parts {
-		res = append(res, part...)
-	}
-	return res
-}
+// func concat(parts ...[]string) []string {
+// 	res := []string(nil)
+// 	for _, part := range parts {
+// 		res = append(res, part...)
+// 	}
+// 	return res
+// }
 
 // func TestXErr_Error(t *testing.T) {
 // 	err := New(
