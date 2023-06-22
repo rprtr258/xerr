@@ -59,7 +59,7 @@ func TestFields(tt *testing.T) {
 		"field2": "2",
 		"field3": 3.3,
 	}
-	t.Len(got, 7)
+	t.Len(got, 6)
 	delete(got, "@message")
 	delete(got, "@caller")
 	delete(got, "@errors")
@@ -69,7 +69,9 @@ func TestFields(tt *testing.T) {
 }
 
 func faulty() error {
-	return New(Message("aboba"), CallerSkip(1))
+	Helper()
+
+	return New(Message("aboba"), Caller)
 }
 
 func TestNew_caller(tt *testing.T) {
@@ -80,7 +82,9 @@ func TestNew_caller(tt *testing.T) {
 }
 
 func faultyM() error {
-	return NewM("aboba", CallerSkip(1))
+	Helper()
+
+	return NewM("aboba", Caller)
 }
 
 func TestNewM_caller(tt *testing.T) {

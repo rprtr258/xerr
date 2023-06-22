@@ -2,7 +2,6 @@ package xerr
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -31,7 +30,7 @@ type xError struct {
 	fields map[string]any
 	// at - error creation timestamp
 	at time.Time
-	// caller - error origin function frame
+	// caller - error origin function frame, nil if no caller added
 	caller *stackFrame
 }
 
@@ -151,8 +150,8 @@ type xErrorConfig struct {
 	fields map[string]any
 	// at - error creation timestamp
 	at time.Time
-	// callerSkip - how many skips before getting caller
-	callerSkip int
+	// addCaller - add caller info
+	addCaller bool
 }
 
 type Option interface {
@@ -188,20 +187,14 @@ func Stacktrace(skip int) Option {
 	}
 }
 
-type callerSkipOpt struct {
-	skip int
+type callerOpt struct{}
+
+func (o callerOpt) apply(c *xErrorConfig) {
+	c.addCaller = true
 }
 
-func (o callerSkipOpt) apply(c *xErrorConfig) {
-	c.callerSkip += o.skip
-}
-
-// CallerSkip - add caller skip
-func CallerSkip(skip int) Option {
-	return callerSkipOpt{
-		skip: skip,
-	}
-}
+// Caller - add caller
+var Caller = callerOpt{}
 
 type Message string
 
@@ -220,20 +213,27 @@ func (o Fields) apply(c *xErrorConfig) {
 }
 
 func newx(opts ...Option) *xError {
+	Helper()
+
 	if len(opts) == 0 {
 		return nil
 	}
 
 	config := &xErrorConfig{
-		errs:       nil,
-		callstack:  nil,
-		message:    "",
-		fields:     map[string]any{},
-		at:         time.Now().UTC(),
-		callerSkip: 1,
+		errs:      nil,
+		callstack: nil,
+		message:   "",
+		fields:    map[string]any{},
+		at:        time.Now().UTC(),
+		addCaller: false,
 	}
 	for _, opt := range opts {
 		opt.apply(config)
+	}
+
+	var caller *stackFrame
+	if config.addCaller {
+		caller = getCaller()
 	}
 
 	return &xError{
@@ -242,39 +242,44 @@ func newx(opts ...Option) *xError {
 		message:   config.message,
 		fields:    config.fields,
 		at:        config.at,
-		caller:    caller(config.callerSkip),
+		caller:    caller,
 	}
 }
 
 // New - creates error with metadata such as caller information and timestamp.
 // Additional metadata can be attached using With* options.
 func New(opts ...Option) *xError {
+	Helper()
+
 	return newx(opts...)
 }
 
 // NewM - equivalent to New(WithMessage(message), opts...)
 func NewM(message Message, opts ...Option) error {
+	Helper()
+
 	return newx(append(opts, Message(message))...)
 }
 
 // NewW - equivalent to New(WithErrors(err), opts...)
 func NewW(err error, opts ...Option) error {
+	Helper()
+
 	return newx(append(opts, Errors{err})...)
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
 func NewWM(err error, message Message, opts ...Option) error {
+	Helper()
+
 	return newx(append(opts, Errors{err}, Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
 func NewF(message Message, fields map[string]any, opts ...Option) error {
-	return newx(append(opts, Fields(fields), Message(message))...)
-}
+	Helper()
 
-// Unwrap is alias to "errors".Unwrap
-func Unwrap(err error) error {
-	return errors.Unwrap(err)
+	return newx(append(opts, Fields(fields), Message(message))...)
 }
 
 func UnwrapFields(err error) (string, map[string]any) {

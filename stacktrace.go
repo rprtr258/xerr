@@ -3,7 +3,34 @@ package xerr
 import (
 	"fmt"
 	"runtime"
+	"sync"
 )
+
+type funcID struct {
+	Function string
+	File     string
+}
+
+var (
+	_helperPCs = map[funcID]struct{}{}
+	helpersMu  = &sync.Mutex{}
+)
+
+func Helper() {
+	helpersMu.Lock()
+	defer helpersMu.Unlock()
+
+	var pc [1]uintptr
+	if n := runtime.Callers(2, pc[:]); n == 0 { // skip runtime.Callers + Helper
+		panic("testing: zero callers found")
+	}
+	frames := runtime.CallersFrames(pc[:])
+	frame, _ := frames.Next()
+	_helperPCs[funcID{
+		Function: frame.Function,
+		File:     frame.File,
+	}] = struct{}{}
+}
 
 const _maxStackDepth = 50
 
@@ -46,16 +73,35 @@ func stacktrace(skip int) []stackFrame {
 	return stack
 }
 
-func caller(skip int) *stackFrame {
-	callers := make([]uintptr, 1)
-	length := runtime.Callers(3+skip, callers[:])
+func getCaller() *stackFrame {
+	Helper()
+
+	callers := make([]uintptr, 1+len(_helperPCs))
+	length := runtime.Callers(1, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
-	frame, _ := frames.Next()
-	return &stackFrame{
-		Function: frame.Function,
-		File:     frame.File,
-		Line:     frame.Line,
+	for {
+		rawFrame, more := frames.Next()
+		if !more {
+			break
+		}
+
+		funcID := funcID{
+			Function: rawFrame.Function,
+			File:     rawFrame.File,
+		}
+
+		if _, ok := _helperPCs[funcID]; ok {
+			continue
+		}
+
+		return &stackFrame{
+			Function: rawFrame.Function,
+			File:     rawFrame.File,
+			Line:     rawFrame.Line,
+		}
 	}
+
+	panic("all functions in stack are helpers")
 }

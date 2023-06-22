@@ -104,23 +104,6 @@ func AppendFunc(into *error, f func() error) {
 	AppendInto(into, f())
 }
 
-// Unwraps returns the result of calling the Unwraps method on err, if err's
-// type contains an Unwraps method returning zero or more errors.
-// Otherwise, fallbacks to Unwrap func behavior returning single or none errors.
-func Unwraps(err error) []error {
-	if e, ok := err.(interface {
-		Unwraps() []error
-	}); ok {
-		return e.Unwraps()
-	}
-
-	if res := Unwrap(err); res != nil {
-		return []error{res}
-	}
-
-	return nil
-}
-
 // appendErrs - filter out nil errors
 func appendErrs(into []error, errs []error) []error {
 	cnt := 0
