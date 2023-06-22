@@ -112,29 +112,12 @@ func TestWithStacktrace(tt *testing.T) {
 	t.Equal(wantFunctions, gotFunctions)
 }
 
-func TestGetValue(tt *testing.T) {
-	t := assert.New(tt)
-
-	err := New(Errors{
-		NewM("a"),
-		NewM("b", Value(123)),
-	})
-
-	intGot, intOk := UnwrapValue[int](err)
-	t.True(intOk)
-	t.Equal(123, intGot)
-
-	_, boolOk := UnwrapValue[bool](err)
-	t.False(boolOk)
-}
-
 func TestFields(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := New(
 		Message("abc"),
 		Errors{nil, NewM("def"), nil},
-		Value(404),
 		Fields{"field1": 1},
 		Fields{
 			"field2": "2",

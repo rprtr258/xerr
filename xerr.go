@@ -11,7 +11,6 @@ import (
 // special metadata keys
 var (
 	keyStacktrace = "@stacktrace"
-	keyValue      = "@value"
 	keyMessage    = "@message"
 	keyCaller     = "@caller"
 	keyErrors     = "@errors"
@@ -32,13 +31,6 @@ type xError struct {
 	at time.Time
 	// caller - error origin function frame
 	caller *stackFrame
-	// value attached to error, nil if none
-	// Warning: if nil is attached, value is still nil
-	value any
-}
-
-func (err *xError) Value() any {
-	return err.value
 }
 
 func (err *xError) MarshalJSON() ([]byte, error) {
@@ -57,10 +49,6 @@ func (err *xError) toMap() map[string]any {
 			frames[i] = frame.String()
 		}
 		res[keyStacktrace] = frames
-	}
-
-	if err.value != nil {
-		res[keyValue] = err.value
 	}
 
 	if err.message != "" {
@@ -97,10 +85,6 @@ func (err *xError) Error() string {
 	if err.caller != nil {
 		sb.WriteString(" caller=")
 		sb.WriteString(err.caller.String())
-	}
-
-	if err.value != nil {
-		err.fields[keyValue] = err.value
 	}
 
 	if len(err.fields) > 0 {
@@ -167,9 +151,6 @@ type xErrorConfig struct {
 	at time.Time
 	// callerSkip - how many skips before getting caller
 	callerSkip int
-	// value attached to error, nil if none
-	// Warning: if nil is attached, value is still nil
-	value any
 }
 
 type Option interface {
@@ -236,21 +217,6 @@ func (o Fields) apply(c *xErrorConfig) {
 	}
 }
 
-// Value - attach value to error, if value is nil, no value is attached
-type valueOpt struct {
-	value any
-}
-
-func (o valueOpt) apply(c *xErrorConfig) {
-	c.value = o.value
-}
-
-func Value(value any) Option {
-	return valueOpt{
-		value: value,
-	}
-}
-
 func newx(opts ...Option) error {
 	if len(opts) == 0 {
 		return nil
@@ -263,7 +229,6 @@ func newx(opts ...Option) error {
 		fields:     map[string]any{},
 		at:         time.Now().UTC(),
 		callerSkip: 1,
-		value:      nil,
 	}
 	for _, opt := range opts {
 		opt.apply(config)
@@ -276,7 +241,6 @@ func newx(opts ...Option) error {
 		fields:    config.fields,
 		at:        config.at,
 		caller:    caller(config.callerSkip),
-		value:     config.value,
 	}
 }
 
@@ -304,29 +268,6 @@ func NewWM(err error, message string, opts ...Option) error {
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
 func NewF(message string, fields map[string]any, opts ...Option) error {
 	return newx(append(opts, Fields(fields), Message(message))...)
-}
-
-// UnwrapValue from err having type T and bool detecting if such value was found.
-// First value found in depth-first order is returned. Value is extracted using
-// `Value() any` method, so errors constructed with New(WithValue(value)) will
-// give value out.
-func UnwrapValue[T any](err error) (T, bool) {
-	stack := []error{err}
-	for len(stack) > 0 {
-		cur := stack[0]
-		stack = stack[1:]
-		if e, ok := cur.(interface {
-			Value() any
-		}); ok {
-			if value, ok2 := e.Value().(T); ok2 {
-				return value, true
-			}
-		}
-		stack = append(stack, Unwraps(cur)...)
-	}
-
-	var zero T
-	return zero, false
 }
 
 // Unwrap is alias to "errors".Unwrap
