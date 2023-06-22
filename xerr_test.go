@@ -55,16 +55,13 @@ func TestFields(tt *testing.T) {
 	)
 	got := err.toMap()
 	want := map[string]any{
-		"field1": 1,
-		"field2": "2",
-		"field3": 3.3,
+		"field1":   1,
+		"field2":   "2",
+		"field3":   3.3,
+		"@message": "abc",
 	}
-	t.Len(got, 6)
-	delete(got, "@message")
-	delete(got, "@caller")
+	t.Len(got, 5)
 	delete(got, "@errors")
-	delete(got, "@at")
-	t.Len(got, 3)
 	t.Equal(want, got)
 }
 

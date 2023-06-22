@@ -28,8 +28,8 @@ type xError struct {
 	message string
 	// fields added using WithField and WithFields
 	fields map[string]any
-	// at - error creation timestamp
-	at time.Time
+	// when - error creation timestamp
+	when time.Time
 	// caller - error origin function frame, nil if no caller added
 	caller *stackFrame
 }
@@ -64,8 +64,8 @@ func (err *xError) toMap() map[string]any {
 		res[keyErrors] = err.errs
 	}
 
-	if !err.at.IsZero() {
-		res[keyAt] = err.at.Format(time.RFC1123)
+	if !err.when.IsZero() {
+		res[keyAt] = err.when.Format(time.RFC1123)
 	}
 
 	return res
@@ -78,9 +78,9 @@ func (err *xError) Error() string {
 		sb.WriteString(err.message)
 	}
 
-	if !err.at.IsZero() {
+	if !err.when.IsZero() {
 		sb.WriteString(" at=")
-		sb.WriteString(err.at.Format(time.RFC1123))
+		sb.WriteString(err.when.Format(time.RFC1123))
 	}
 
 	if err.caller != nil {
@@ -148,8 +148,8 @@ type xErrorConfig struct {
 	message string
 	// fields added using WithField and WithFields
 	fields map[string]any
-	// at - error creation timestamp
-	at time.Time
+	// when - error creation timestamp
+	when time.Time
 	// addCaller - add caller info
 	addCaller bool
 }
@@ -196,6 +196,15 @@ func (o callerOpt) apply(c *xErrorConfig) {
 // Caller - add caller
 var Caller = callerOpt{}
 
+type whenOpt struct{}
+
+func (o whenOpt) apply(c *xErrorConfig) {
+	c.when = time.Now()
+}
+
+// When - add timestamp
+var When = whenOpt{}
+
 type Message string
 
 // Message - attach error description
@@ -224,7 +233,7 @@ func newx(opts ...Option) *xError {
 		callstack: nil,
 		message:   "",
 		fields:    map[string]any{},
-		at:        time.Now().UTC(),
+		when:      time.Time{},
 		addCaller: false,
 	}
 	for _, opt := range opts {
@@ -241,7 +250,7 @@ func newx(opts ...Option) *xError {
 		callstack: config.callstack,
 		message:   config.message,
 		fields:    config.fields,
-		at:        config.at,
+		when:      config.when,
 		caller:    caller,
 	}
 }
