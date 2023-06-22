@@ -142,8 +142,8 @@ func (err *xError) UnwrapFields() (string, map[string]any) {
 type xErrorConfig struct {
 	// errs list of wrapped errors
 	errs []error
-	// callstack of error origin, if constructed with WithStack
-	callstack []stackFrame
+	// addStacktrace of error origin
+	addStacktrace bool
 	// message describing error, added using WithMessage
 	message string
 	// fields added using WithField and WithFields
@@ -169,23 +169,14 @@ func (o Errors) apply(c *xErrorConfig) {
 	}
 }
 
-type stacktraceOpt struct {
-	skip int
-}
+type stacktraceOpt struct{}
 
 func (o stacktraceOpt) apply(c *xErrorConfig) {
-	// 1 for this callback
-	// 1 for New func
-	// 1 for newx func
-	c.callstack = stacktrace(o.skip + 3)
+	c.addStacktrace = true
 }
 
 // Stacktrace - add stacktrace
-func Stacktrace(skip int) Option {
-	return stacktraceOpt{
-		skip: skip,
-	}
-}
+var Stacktrace = stacktraceOpt{}
 
 type callerOpt struct{}
 
@@ -229,15 +220,20 @@ func newx(opts ...Option) *xError {
 	}
 
 	config := &xErrorConfig{
-		errs:      nil,
-		callstack: nil,
-		message:   "",
-		fields:    map[string]any{},
-		when:      time.Time{},
-		addCaller: false,
+		errs:          nil,
+		addStacktrace: false,
+		message:       "",
+		fields:        map[string]any{},
+		when:          time.Time{},
+		addCaller:     false,
 	}
 	for _, opt := range opts {
 		opt.apply(config)
+	}
+
+	var callstack []stackFrame
+	if config.addStacktrace {
+		callstack = stacktrace()
 	}
 
 	var caller *stackFrame
@@ -247,7 +243,7 @@ func newx(opts ...Option) *xError {
 
 	return &xError{
 		errs:      config.errs,
-		callstack: config.callstack,
+		callstack: callstack,
 		message:   config.message,
 		fields:    config.fields,
 		when:      config.when,

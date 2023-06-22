@@ -21,11 +21,12 @@ func TestCombine(tt *testing.T) {
 }
 
 func newErr() *xError {
-	return New(Stacktrace(1))
+	return New(Stacktrace)
 }
 
 func TestWithStacktrace(t *testing.T) {
 	wantFunctions := []string{
+		"github.com/rprtr258/xerr.newErr",
 		"github.com/rprtr258/xerr.TestWithStacktrace",
 		"testing.tRunner",
 		"runtime.goexit",
@@ -142,7 +143,7 @@ func TestXErr_Error(t *testing.T) {
 		Message("aboba"),
 		Errors{NewM("123"), NewM("lol")},
 		Fields{"code": 404},
-		Stacktrace(0),
+		Stacktrace,
 	).Error()
 
 	assert.Equal(t,
@@ -151,7 +152,7 @@ func TestXErr_Error(t *testing.T) {
 			"code=404",
 			"errs=[123; lol]",
 			"stacktrace=[" +
-				"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:141; " +
+				"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:142; " +
 				"/home/rprtr258/.gvm/gos/go1.19.5/src/testing/testing.go#testing.tRunner:1446; " +
 				"/home/rprtr258/.gvm/gos/go1.19.5/src/runtime/asm_amd64.s#runtime.goexit:1594; " +
 				"]",

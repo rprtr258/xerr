@@ -41,23 +41,25 @@ func (sf *stackFrame) String() string {
 	return fmt.Sprintf("%s#%s:%d", sf.File, sf.Function, sf.Line)
 }
 
-func stacktrace(skip int) []stackFrame {
+func stacktrace() []stackFrame {
 	callers := make([]uintptr, _maxStackDepth)
-	length := runtime.Callers(2+skip, callers[:])
+	length := runtime.Callers(2, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
 	stack := make([]stackFrame, 0, len(callers))
 	for {
 		frame, more := frames.Next()
-		stack = append(
-			stack,
-			stackFrame{
-				Function: frame.Function,
-				File:     frame.File,
-				Line:     frame.Line,
-			},
-		)
+		if _, ok := _helperPCs[frame.Function]; !ok {
+			stack = append(
+				stack,
+				stackFrame{
+					Function: frame.Function,
+					File:     frame.File,
+					Line:     frame.Line,
+				},
+			)
+		}
 		if !more {
 			break
 		}
