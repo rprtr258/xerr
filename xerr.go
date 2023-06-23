@@ -296,14 +296,14 @@ func UnwrapFields(err error) (string, map[string]any) {
 	return err.Error(), nil
 }
 
-// Is - checks target type for type E. Note: that differs from "errors".Is.
+// Is - checks target type for type E. Note: that differs from "errors.Is".
 // This function does not use Unwrap. To compare errors use ==.
 func Is[E error](err error) bool {
 	_, ok := err.(E)
 	return ok
 }
 
-// As - get error as type E. Note: that differs from "errors".As.
+// As - get error as type E. Note: that differs from "errors.As".
 // This function does not use Unwrap.
 func As[E error](err error) (E, bool) {
 	res, ok := err.(E)

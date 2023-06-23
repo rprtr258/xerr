@@ -81,8 +81,6 @@ func TestNew_caller(tt *testing.T) {
 }
 
 func faultyM() error {
-	Helper()
-
 	return NewM("aboba", Caller)
 }
 
@@ -90,7 +88,7 @@ func TestNewM_caller(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := faultyM().(*xError)
-	t.Equal("github.com/rprtr258/xerr.TestNewM_caller", err.caller.Function)
+	t.Equal("github.com/rprtr258/xerr.faultyM", err.caller.Function)
 }
 
 func TestMarshalJSON(t *testing.T) {
@@ -152,7 +150,7 @@ func TestXErr_Error(t *testing.T) {
 			"code=404",
 			"errs=[123; lol]",
 			"stacktrace=[" +
-				"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:142; " +
+				"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:140; " +
 				"/home/rprtr258/.gvm/gos/go1.19.5/src/testing/testing.go#testing.tRunner:1446; " +
 				"/home/rprtr258/.gvm/gos/go1.19.5/src/runtime/asm_amd64.s#runtime.goexit:1594; " +
 				"]",
