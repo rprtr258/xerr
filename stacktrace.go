@@ -3,7 +3,29 @@ package xerr
 import (
 	"fmt"
 	"runtime"
+	"sync"
 )
+
+var (
+	// _helperPCs - helper functions names
+	_helperPCs = map[string]struct{}{}
+	_helpersMu = &sync.Mutex{}
+)
+
+// Helper - mark caller function as helper, so it won't be shown in caller and stacktrace
+func Helper() {
+	_helpersMu.Lock()
+	defer _helpersMu.Unlock()
+
+	var pc [1]uintptr
+	// 2 = skip runtime.Callers + Helper
+	if n := runtime.Callers(2, pc[:]); n == 0 {
+		panic("testing: zero callers found")
+	}
+	frames := runtime.CallersFrames(pc[:])
+	frame, _ := frames.Next()
+	_helperPCs[frame.Function] = struct{}{}
+}
 
 const _maxStackDepth = 50
 
@@ -21,23 +43,22 @@ func (sf *stackFrame) String() string {
 	return fmt.Sprintf("%s#%s:%d", sf.File, sf.Function, sf.Line)
 }
 
-func stacktrace(skip int) []stackFrame {
+func stacktrace() []stackFrame {
 	callers := make([]uintptr, _maxStackDepth)
-	length := runtime.Callers(2+skip, callers[:])
+	length := runtime.Callers(2, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
 	stack := make([]stackFrame, 0, len(callers))
 	for {
 		frame, more := frames.Next()
-		stack = append(
-			stack,
-			stackFrame{
+		if _, ok := _helperPCs[frame.Function]; !ok {
+			stack = append(stack, stackFrame{
 				Function: frame.Function,
 				File:     frame.File,
 				Line:     frame.Line,
-			},
-		)
+			})
+		}
 		if !more {
 			break
 		}
@@ -46,16 +67,30 @@ func stacktrace(skip int) []stackFrame {
 	return stack
 }
 
-func caller(skip int) *stackFrame {
-	callers := make([]uintptr, 1)
-	length := runtime.Callers(3+skip, callers[:])
+func getCaller() *stackFrame {
+	Helper()
+
+	callers := make([]uintptr, 1+len(_helperPCs))
+	length := runtime.Callers(1, callers[:])
 	callers = callers[:length]
 
 	frames := runtime.CallersFrames(callers)
-	frame, _ := frames.Next()
-	return &stackFrame{
-		Function: frame.Function,
-		File:     frame.File,
-		Line:     frame.Line,
+	for {
+		frame, more := frames.Next()
+		if !more {
+			break
+		}
+
+		if _, ok := _helperPCs[frame.Function]; ok {
+			continue
+		}
+
+		return &stackFrame{
+			Function: frame.Function,
+			File:     frame.File,
+			Line:     frame.Line,
+		}
 	}
+
+	panic("all functions in stack are helpers")
 }
