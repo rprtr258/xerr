@@ -8,15 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCombine(tt *testing.T) {
-	t := assert.New(tt)
-
+func TestCombine(t *testing.T) {
 	err1 := NewM("1")
 	err2 := NewM("2")
 	err3 := NewM("3")
 
 	got := Combine(err1, nil, err2, err3, nil)
-	t.Equal([]error{err1, err2, err3}, got.Errs)
+	assert.Equal(t, []error{err1, err2, err3}, got.Errs)
 }
 
 func newErr() *xError {
@@ -60,6 +58,7 @@ func TestFields(t *testing.T) {
 	assert.Equal(t, "abc", err.Message)
 	assert.Equal(t, want, err.Fields)
 	assert.EqualError(t, err.Err, "def")
+	assert.Nil(t, err.Errs)
 }
 
 func myNewError() error {
@@ -68,22 +67,18 @@ func myNewError() error {
 	return New(Message("aboba"), Caller)
 }
 
-func TestNew_callerHelper(tt *testing.T) {
-	t := assert.New(tt)
-
+func TestNew_callerHelper(t *testing.T) {
 	err := myNewError().(*xError)
-	t.Equal("github.com/rprtr258/xerr.TestNew_callerHelper", err.Caller.Function)
+	assert.Equal(t, "github.com/rprtr258/xerr.TestNew_callerHelper", err.Caller.Function)
 }
 
 func faulty() error {
 	return NewM("aboba", Caller)
 }
 
-func TestNew_caller(tt *testing.T) {
-	t := assert.New(tt)
-
+func TestNew_caller(t *testing.T) {
 	err := faulty().(*xError)
-	t.Equal("github.com/rprtr258/xerr.faulty", err.Caller.Function)
+	assert.Equal(t, "github.com/rprtr258/xerr.faulty", err.Caller.Function)
 }
 
 func TestXErr_Error(t *testing.T) {
