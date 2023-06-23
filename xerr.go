@@ -1,95 +1,56 @@
 package xerr
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
-)
-
-// special metadata keys
-var (
-	keyStacktrace = "@stacktrace"
-	keyMessage    = "@message"
-	keyCaller     = "@caller"
-	keyErrors     = "@errors"
-	keyAt         = "@at"
 )
 
 var _ error = (*xError)(nil)
 
 // xError - main structure containing error with metadata
 type xError struct {
-	// errs list of wrapped errors
-	errs []error
-	// message describing error, added using WithMessage
-	message string
-	// fields added using WithField and WithFields
-	fields map[string]any
-	// when - error creation timestamp
-	when time.Time
-	// stacktrace of error origin, nil if no stacktrace added
-	stacktrace []stackFrame
-	// caller - error origin function frame, nil if no caller added
-	caller *stackFrame
-}
+	// Message describing error
+	Message string
+	// Fields - error Fields, nil if none
+	Fields map[string]any
+	// At - error creation timestamp, zero if not specified
+	At time.Time
 
-func (err *xError) MarshalJSON() ([]byte, error) {
-	return json.Marshal(err.toMap())
-}
+	// errs list of wrapped errors.
+	// Either Err or Errs is always nil.
+	Err error
+	// Errs list of wrapped errors
+	// Either Err or Errs is always nil.
+	Errs []error
 
-func (err *xError) toMap() map[string]any {
-	res := make(map[string]any, len(err.fields))
-	for k, v := range err.fields {
-		res[k] = v
-	}
-
-	if err.stacktrace != nil {
-		frames := make([]string, len(err.stacktrace))
-		for i, frame := range err.stacktrace {
-			frames[i] = frame.String()
-		}
-		res[keyStacktrace] = frames
-	}
-
-	if err.message != "" {
-		res[keyMessage] = err.message
-	}
-
-	if err.caller != nil {
-		res[keyCaller] = err.caller.String()
-	}
-
-	if len(err.errs) != 0 {
-		res[keyErrors] = err.errs
-	}
-
-	if !err.when.IsZero() {
-		res[keyAt] = err.when.Format(time.RFC1123)
-	}
-
-	return res
+	// Stacktrace of error origin, nil if no Stacktrace added.
+	// Either Stacktrace or Caller is always nil.
+	Stacktrace []stackFrame
+	// Caller - error origin function frame, nil if no Caller added
+	// Either Stacktrace or Caller is always nil.
+	Caller *stackFrame
 }
 
 func (err *xError) Error() string {
 	var sb strings.Builder
 
-	if err.message != "" {
-		sb.WriteString(err.message)
+	if err.Message != "" {
+		sb.WriteString(err.Message)
 	}
 
-	if !err.when.IsZero() {
+	if !err.At.IsZero() {
 		sb.WriteString(" at=")
-		sb.WriteString(err.when.Format(time.RFC1123))
+		sb.WriteString(err.At.Format(time.RFC1123))
 	}
 
-	if err.caller != nil {
+	if err.Caller != nil {
 		sb.WriteString(" caller=")
-		sb.WriteString(err.caller.String())
+		sb.WriteString(err.Caller.String())
 	}
 
-	if len(err.fields) > 0 {
-		for k, v := range err.fields {
+	if len(err.Fields) > 0 {
+		for k, v := range err.Fields {
 			sb.WriteString(" ")
 			sb.WriteString(k)
 			sb.WriteString("=")
@@ -97,19 +58,19 @@ func (err *xError) Error() string {
 		}
 	}
 
-	if len(err.errs) != 0 {
+	if len(err.Errs) != 0 {
 		sb.WriteString(" errs=[")
-		sb.WriteString(err.errs[0].Error())
-		for _, e := range err.errs[1:] {
+		sb.WriteString(err.Errs[0].Error())
+		for _, e := range err.Errs[1:] {
 			sb.WriteString("; ")
 			sb.WriteString(e.Error())
 		}
 		sb.WriteString("]")
 	}
 
-	if err.stacktrace != nil {
+	if err.Stacktrace != nil {
 		sb.WriteString(" stacktrace=[")
-		for _, frame := range err.stacktrace {
+		for _, frame := range err.Stacktrace {
 			sb.WriteString(frame.String())
 			sb.WriteString("; ")
 		}
@@ -120,22 +81,15 @@ func (err *xError) Error() string {
 }
 
 func (err *xError) Unwrap() error {
-	if len(err.errs) == 0 {
+	if err.Err != nil {
+		return err.Err
+	}
+
+	if len(err.Errs) == 0 {
 		return nil
 	}
 
-	return err.errs[0]
-}
-
-func (err *xError) Unwraps() []error {
-	return err.errs
-}
-
-func (err *xError) UnwrapFields() (string, map[string]any) {
-	// TODO: simplify
-	fields := err.toMap()
-	delete(fields, keyMessage)
-	return err.message, fields
+	return err.Errs[0]
 }
 
 // TODO: simplify
@@ -241,13 +195,28 @@ func newx(opts ...Option) *xError {
 		caller = getCaller()
 	}
 
+	var (
+		err  error
+		errs []error
+	)
+	switch len(config.errs) {
+	case 0:
+	case 1:
+		err = config.errs[0]
+	default:
+		errs = config.errs
+	}
+
 	return &xError{
-		errs:       config.errs,
-		stacktrace: callstack,
-		message:    config.message,
-		fields:     config.fields,
-		when:       config.when,
-		caller:     caller,
+		Message: config.message,
+		Fields:  config.fields,
+		At:      config.when,
+
+		Err:  err,
+		Errs: errs,
+
+		Stacktrace: callstack,
+		Caller:     caller,
 	}
 }
 
@@ -260,7 +229,7 @@ func New(opts ...Option) *xError {
 }
 
 // NewM - equivalent to New(WithMessage(message), opts...)
-func NewM(message Message, opts ...Option) error {
+func NewM(message string, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Message(message))...)
@@ -274,14 +243,14 @@ func NewW(err error, opts ...Option) error {
 }
 
 // NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
-func NewWM(err error, message Message, opts ...Option) error {
+func NewWM(err error, message string, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Errors{err}, Message(message))...)
 }
 
 // NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
-func NewF(message Message, fields map[string]any, opts ...Option) error {
+func NewF(message string, fields map[string]any, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Fields(fields), Message(message))...)

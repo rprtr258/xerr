@@ -9,15 +9,17 @@ import (
 var (
 	// _helperPCs - helper functions names
 	_helperPCs = map[string]struct{}{}
-	helpersMu  = &sync.Mutex{}
+	_helpersMu = &sync.Mutex{}
 )
 
+// Helper - mark caller function as helper, so it won't be shown in caller and stacktrace
 func Helper() {
-	helpersMu.Lock()
-	defer helpersMu.Unlock()
+	_helpersMu.Lock()
+	defer _helpersMu.Unlock()
 
 	var pc [1]uintptr
-	if n := runtime.Callers(2, pc[:]); n == 0 { // skip runtime.Callers + Helper
+	// 2 = skip runtime.Callers + Helper
+	if n := runtime.Callers(2, pc[:]); n == 0 {
 		panic("testing: zero callers found")
 	}
 	frames := runtime.CallersFrames(pc[:])

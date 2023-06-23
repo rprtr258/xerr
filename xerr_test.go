@@ -1,8 +1,6 @@
 package xerr
 
 import (
-	"encoding/json"
-	"errors"
 	"regexp"
 	"strings"
 	"testing"
@@ -18,7 +16,7 @@ func TestCombine(tt *testing.T) {
 	err3 := NewM("3")
 
 	got := Combine(err1, nil, err2, err3, nil)
-	t.Equal([]error{err1, err2, err3}, got.errs)
+	t.Equal([]error{err1, err2, err3}, got.Errs)
 }
 
 func newErr() *xError {
@@ -35,7 +33,7 @@ func TestWithStacktrace(t *testing.T) {
 
 	err := newErr()
 
-	got := err.stacktrace
+	got := err.Stacktrace
 	gotFunctions := make([]string, len(got))
 	for i, frame := range got {
 		gotFunctions[i] = frame.Function
@@ -44,9 +42,7 @@ func TestWithStacktrace(t *testing.T) {
 	assert.Equal(t, wantFunctions, gotFunctions)
 }
 
-func TestFields(tt *testing.T) {
-	t := assert.New(tt)
-
+func TestFields(t *testing.T) {
 	err := New(
 		Message("abc"),
 		Errors{nil, NewM("def"), nil},
@@ -56,85 +52,38 @@ func TestFields(tt *testing.T) {
 			"field3": 3.3,
 		},
 	)
-	got := err.toMap()
 	want := map[string]any{
-		"field1":   1,
-		"field2":   "2",
-		"field3":   3.3,
-		"@message": "abc",
+		"field1": 1,
+		"field2": "2",
+		"field3": 3.3,
 	}
-	t.Len(got, 5)
-	delete(got, "@errors")
-	t.Equal(want, got)
+	assert.Equal(t, "abc", err.Message)
+	assert.Equal(t, want, err.Fields)
+	assert.EqualError(t, err.Err, "def")
 }
 
-func faulty() error {
+func myNewError() error {
 	Helper()
 
 	return New(Message("aboba"), Caller)
+}
+
+func TestNew_callerHelper(tt *testing.T) {
+	t := assert.New(tt)
+
+	err := myNewError().(*xError)
+	t.Equal("github.com/rprtr258/xerr.TestNew_callerHelper", err.Caller.Function)
+}
+
+func faulty() error {
+	return NewM("aboba", Caller)
 }
 
 func TestNew_caller(tt *testing.T) {
 	t := assert.New(tt)
 
 	err := faulty().(*xError)
-	t.Equal("github.com/rprtr258/xerr.TestNew_caller", err.caller.Function)
-}
-
-func faultyM() error {
-	return NewM("aboba", Caller)
-}
-
-func TestNewM_caller(tt *testing.T) {
-	t := assert.New(tt)
-
-	err := faultyM().(*xError)
-	t.Equal("github.com/rprtr258/xerr.faultyM", err.caller.Function)
-}
-
-func TestMarshalJSON(t *testing.T) {
-	for name, test := range map[string]struct {
-		err  error
-		want string
-	}{
-		"nested multierr": {
-			err: Combine(
-				errors.New("a"),
-				Combine(
-					errors.New("b"),
-					errors.New("c"),
-				),
-			),
-			want: `["a",["b","c"]]`,
-		},
-		// TODO: test *xErr
-		// "xerr": {
-		// 	err: New(
-		// 		Message("a"),
-		// 		Field("b", 3),
-		// 		Errors(errors.New("c")),
-		// 	),
-		// 	want: `{"@at":"Thu, 16 Mar 2023 01:50:09 UTC","@caller":"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestMarshalJSON:200","@errors":["c"],"@message":"a","b":3}`,
-		// },
-	} {
-		t.Run(name, func(t *testing.T) {
-			got, err := json.Marshal(test.err)
-			assert.NoError(t, err)
-			assert.Equal(t, test.want, string(got))
-		})
-	}
-}
-
-func TestJSON(t *testing.T) {
-	got, err := json.Marshal(Combine(
-		errors.New("a"),
-		Combine(
-			errors.New("b"),
-			errors.New("c"),
-		),
-	))
-	assert.NoError(t, err)
-	assert.Equal(t, `["a",["b","c"]]`, string(got))
+	t.Equal("github.com/rprtr258/xerr.faulty", err.Caller.Function)
 }
 
 func TestXErr_Error(t *testing.T) {
