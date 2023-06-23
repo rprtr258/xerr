@@ -53,14 +53,11 @@ func stacktrace() []stackFrame {
 	for {
 		frame, more := frames.Next()
 		if _, ok := _helperPCs[frame.Function]; !ok {
-			stack = append(
-				stack,
-				stackFrame{
-					Function: frame.Function,
-					File:     frame.File,
-					Line:     frame.Line,
-				},
-			)
+			stack = append(stack, stackFrame{
+				Function: frame.Function,
+				File:     frame.File,
+				Line:     frame.Line,
+			})
 		}
 		if !more {
 			break

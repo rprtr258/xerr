@@ -18,7 +18,7 @@ func TestCombine(t *testing.T) {
 }
 
 func newErr() *xError {
-	return New(Stacktrace)
+	return New(Stacktrace).(*xError)
 }
 
 func TestWithStacktrace(t *testing.T) {
@@ -49,7 +49,7 @@ func TestFields(t *testing.T) {
 			"field2": "2",
 			"field3": 3.3,
 		},
-	)
+	).(*xError)
 	want := map[string]any{
 		"field1": 1,
 		"field2": "2",

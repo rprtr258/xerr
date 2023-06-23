@@ -95,13 +95,13 @@ func (err *xError) Unwrap() error {
 type xErrorConfig struct {
 	// errs - list of wrapped errors
 	errs []error
-	// message describing error, added using WithMessage
+	// message describing error
 	message string
-	// fields added using WithField and WithFields
+	// fields - error Fields
 	fields map[string]any
 	// when - error creation timestamp
 	when time.Time
-	// addStacktrace of error origin
+	// addStacktrace which led to xError creation
 	addStacktrace bool
 	// addCaller function which created xError
 	addCaller bool
@@ -221,7 +221,7 @@ func newx(opts ...Option) *xError {
 
 // New - creates error with metadata such as caller information and timestamp.
 // Additional metadata can be attached using With* options.
-func New(opts ...Option) *xError {
+func New(opts ...Option) error {
 	Helper()
 
 	return newx(opts...)
