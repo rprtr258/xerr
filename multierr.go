@@ -25,14 +25,17 @@ func (err multierr) Unwrap() error {
 
 // Combine multiple errs into single one. If no errors are passed or all of them
 // are nil, nil is returned.
-func Combine(errs ...error) *multierr {
-	if errList := appendErrs(nil, errs); len(errList) > 0 {
+func Combine(errs ...error) error {
+	switch errList := appendErrs(nil, errs); len(errList) {
+	case 0:
+		return nil
+	case 1:
+		return errList[0]
+	default:
 		return &multierr{
 			Errs: errList,
 		}
 	}
-
-	return nil
 }
 
 // AppendInto - append errors into `into` error, making it multiple errors error.

@@ -6,7 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCombine_notNil(t *testing.T) {
+func TestCombine_single(t *testing.T) {
+	got := Combine(NewM("uuh"))
+	assert.IsType(t, (*xError)(nil), got)
+}
+
+func TestCombine_many(t *testing.T) {
 	for name, test := range map[string]struct {
 		errs    []error
 		wantLen int
@@ -17,7 +22,7 @@ func TestCombine_notNil(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			got := Combine(test.errs...)
+			got := Combine(test.errs...).(*multierr)
 			assert.Len(t, got.Errs, test.wantLen)
 		})
 	}
