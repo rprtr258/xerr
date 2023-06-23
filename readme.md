@@ -10,8 +10,7 @@ go get github.com/rprtr258/xerr
 ```go
 err := xerr.New(
     xerr.Message("user not found"),
-    xerr.Errors(sql.NoRows),
-    xerr.Value(404),
+    xerr.Errors{sql.NoRows},
     xerr.Fields{"trace_id": "abcabcabcabc"},
     xerr.Fields{
         "user_id": 1234,
@@ -23,7 +22,7 @@ err := xerr.New(
 Trace id can be added as option from context in following way:
 ```go
 func WithTrace(ctx) xerr.Option {
-    return xerr.Fields{"trace_id": fromCtx(ctx)}
+    return xerr.Fields{"trace_id": getTraceIDFromCtx(ctx)}
 }
 ```
 
