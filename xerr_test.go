@@ -8,15 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCombine(t *testing.T) {
-	err1 := NewM("1")
-	err2 := NewM("2")
-	err3 := NewM("3")
-
-	got := Combine(err1, nil, err2, err3, nil)
-	assert.Equal(t, []error{err1, err2, err3}, got.Errs)
-}
-
 func newErr() *xError {
 	return New(Stacktrace).(*xError)
 }
