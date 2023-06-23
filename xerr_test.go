@@ -3,6 +3,7 @@ package xerr
 import (
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -144,17 +145,17 @@ func TestXErr_Error(t *testing.T) {
 		Stacktrace,
 	).Error()
 
-	assert.Equal(t,
-		strings.Join([]string{
+	assert.Regexp(t,
+		regexp.MustCompile(strings.Join([]string{
 			"aboba",
 			"code=404",
-			"errs=[123; lol]",
-			"stacktrace=[" +
-				"/home/rprtr258/pr/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:140; " +
-				"/home/rprtr258/.gvm/gos/go1.19.5/src/testing/testing.go#testing.tRunner:1446; " +
-				"/home/rprtr258/.gvm/gos/go1.19.5/src/runtime/asm_amd64.s#runtime.goexit:1594; " +
-				"]",
-		}, " "),
+			regexp.QuoteMeta("errs=[123; lol]"),
+			regexp.QuoteMeta("stacktrace=[") +
+				".*" + regexp.QuoteMeta("/xerr/xerr_test.go#github.com/rprtr258/xerr.TestXErr_Error:") + `\d+` + "; " +
+				".*" + regexp.QuoteMeta("testing.tRunner:") + `\d+` + "; " +
+				".*" + regexp.QuoteMeta("runtime.goexit:") + `\d+` + "; " +
+				regexp.QuoteMeta("]"),
+		}, " ")),
 		got,
 	)
 }
