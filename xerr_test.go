@@ -31,6 +31,17 @@ func TestWithStacktrace(t *testing.T) {
 	assert.Equal(t, wantFunctions, gotFunctions)
 }
 
+func TestFields_noFields(t *testing.T) {
+	err := New(
+		Message("abc"),
+		Errors{nil, NewM("def"), nil},
+	).(*xError)
+	assert.Equal(t, "abc", err.Message)
+	assert.Nil(t, err.Fields)
+	assert.EqualError(t, err.Err, "def")
+	assert.Nil(t, err.Errs)
+}
+
 func TestFields(t *testing.T) {
 	err := New(
 		Message("abc"),

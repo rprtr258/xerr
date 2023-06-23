@@ -206,9 +206,14 @@ func newx(opts ...Option) *xError {
 		errs = config.errs
 	}
 
+	var fields map[string]any
+	if len(config.fields) > 0 {
+		fields = config.fields
+	}
+
 	return &xError{
 		Message: config.message,
-		Fields:  config.fields,
+		Fields:  fields,
 		At:      config.when,
 
 		Err:  err,
