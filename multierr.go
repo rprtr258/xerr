@@ -1,7 +1,6 @@
 package xerr
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -22,14 +21,6 @@ func (err multierr) Error() string {
 
 func (err multierr) Unwrap() error {
 	return err.Errs[0]
-}
-
-func (err multierr) UnwrapFields() (string, map[string]any) {
-	fields := make(map[string]any, len(err.Errs))
-	for i, e := range err.Errs {
-		fields[strconv.Itoa(i)] = e
-	}
-	return "", fields
 }
 
 // Combine multiple errs into single one. If no errors are passed or all of them

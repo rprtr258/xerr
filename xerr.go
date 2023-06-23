@@ -256,17 +256,8 @@ func NewF(message string, fields map[string]any, opts ...Option) error {
 	return newx(append(opts, Fields(fields), Message(message))...)
 }
 
-func UnwrapFields(err error) (string, map[string]any) {
-	if e, ok := err.(interface {
-		UnwrapFields() (string, map[string]any)
-	}); ok {
-		return e.UnwrapFields()
-	}
-	return err.Error(), nil
-}
-
 // Is - checks target type for type E. Note: that differs from "errors.Is".
-// This function does not use Unwrap. To compare errors use ==.
+// This function does not use Unwrap.
 func Is[E error](err error) bool {
 	_, ok := err.(E)
 	return ok
