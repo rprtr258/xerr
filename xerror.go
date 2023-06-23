@@ -220,35 +220,35 @@ func newx(opts ...Option) *xError {
 }
 
 // New - creates error with metadata such as caller information and timestamp.
-// Additional metadata can be attached using With* options.
+// Additional metadata can be attached using options.
 func New(opts ...Option) error {
 	Helper()
 
 	return newx(opts...)
 }
 
-// NewM - equivalent to New(WithMessage(message), opts...)
+// NewM - equivalent to New(Message(message), opts...)
 func NewM(message string, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Message(message))...)
 }
 
-// NewW - equivalent to New(WithErrors(err), opts...)
+// NewW - equivalent to New(Errors{err}, opts...)
 func NewW(err error, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Errors{err})...)
 }
 
-// NewWM - equivalent to New(WithErrors(err), WithMessage(message), opts...)
+// NewWM - equivalent to New(Errors{err}, Message(message), opts...)
 func NewWM(err error, message string, opts ...Option) error {
 	Helper()
 
 	return newx(append(opts, Errors{err}, Message(message))...)
 }
 
-// NewF - equivalent to New(WithMessage(message), WithFields(fields), opts...)
+// NewF - equivalent to New(Message(message), Fields(fields), opts...)
 func NewF(message string, fields map[string]any, opts ...Option) error {
 	Helper()
 
