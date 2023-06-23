@@ -92,9 +92,8 @@ func (err *xError) Unwrap() error {
 	return err.Errs[0]
 }
 
-// TODO: simplify
 type xErrorConfig struct {
-	// errs list of wrapped errors
+	// errs - list of wrapped errors
 	errs []error
 	// message describing error, added using WithMessage
 	message string
@@ -104,7 +103,7 @@ type xErrorConfig struct {
 	when time.Time
 	// addStacktrace of error origin
 	addStacktrace bool
-	// addCaller - add caller info
+	// addCaller function which created xError
 	addCaller bool
 }
 
