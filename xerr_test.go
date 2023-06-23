@@ -34,7 +34,7 @@ func TestWithStacktrace(t *testing.T) {
 
 	err := newErr()
 
-	got := err.callstack
+	got := err.stacktrace
 	gotFunctions := make([]string, len(got))
 	for i, frame := range got {
 		gotFunctions[i] = frame.Function

@@ -22,14 +22,14 @@ var _ error = (*xError)(nil)
 type xError struct {
 	// errs list of wrapped errors
 	errs []error
-	// callstack of error origin, if constructed with WithStack
-	callstack []stackFrame
 	// message describing error, added using WithMessage
 	message string
 	// fields added using WithField and WithFields
 	fields map[string]any
 	// when - error creation timestamp
 	when time.Time
+	// stacktrace of error origin, nil if no stacktrace added
+	stacktrace []stackFrame
 	// caller - error origin function frame, nil if no caller added
 	caller *stackFrame
 }
@@ -44,9 +44,9 @@ func (err *xError) toMap() map[string]any {
 		res[k] = v
 	}
 
-	if err.callstack != nil {
-		frames := make([]string, len(err.callstack))
-		for i, frame := range err.callstack {
+	if err.stacktrace != nil {
+		frames := make([]string, len(err.stacktrace))
+		for i, frame := range err.stacktrace {
 			frames[i] = frame.String()
 		}
 		res[keyStacktrace] = frames
@@ -107,9 +107,9 @@ func (err *xError) Error() string {
 		sb.WriteString("]")
 	}
 
-	if err.callstack != nil {
+	if err.stacktrace != nil {
 		sb.WriteString(" stacktrace=[")
-		for _, frame := range err.callstack {
+		for _, frame := range err.stacktrace {
 			sb.WriteString(frame.String())
 			sb.WriteString("; ")
 		}
@@ -142,14 +142,14 @@ func (err *xError) UnwrapFields() (string, map[string]any) {
 type xErrorConfig struct {
 	// errs list of wrapped errors
 	errs []error
-	// addStacktrace of error origin
-	addStacktrace bool
 	// message describing error, added using WithMessage
 	message string
 	// fields added using WithField and WithFields
 	fields map[string]any
 	// when - error creation timestamp
 	when time.Time
+	// addStacktrace of error origin
+	addStacktrace bool
 	// addCaller - add caller info
 	addCaller bool
 }
@@ -175,7 +175,7 @@ func (o stacktraceOpt) apply(c *xErrorConfig) {
 	c.addStacktrace = true
 }
 
-// Stacktrace - add stacktrace
+// Stacktrace - add stacktrace, overrides Caller
 var Stacktrace = stacktraceOpt{}
 
 type callerOpt struct{}
@@ -237,17 +237,17 @@ func newx(opts ...Option) *xError {
 	}
 
 	var caller *stackFrame
-	if config.addCaller {
+	if config.addCaller && !config.addStacktrace {
 		caller = getCaller()
 	}
 
 	return &xError{
-		errs:      config.errs,
-		callstack: callstack,
-		message:   config.message,
-		fields:    config.fields,
-		when:      config.when,
-		caller:    caller,
+		errs:       config.errs,
+		stacktrace: callstack,
+		message:    config.message,
+		fields:     config.fields,
+		when:       config.when,
+		caller:     caller,
 	}
 }
 
