@@ -1,6 +1,7 @@
 package xerr
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 	"testing"
@@ -104,4 +105,9 @@ func TestXErr_Error(t *testing.T) {
 		}, " ")),
 		got,
 	)
+}
+
+func TestXErr_Error2(t *testing.T) {
+	got := NewWM(errors.New("aaa"), "bbb").Error()
+	assert.Regexp(t, `bbb err="aaa"`, got)
 }

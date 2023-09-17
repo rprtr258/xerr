@@ -58,6 +58,11 @@ func (err *xError) Error() string {
 		}
 	}
 
+	if err.Err != nil {
+		sb.WriteString(" err=")
+		fmt.Fprintf(&sb, "%q", err.Err.Error())
+	}
+
 	if len(err.Errs) != 0 {
 		sb.WriteString(" errs=[")
 		sb.WriteString(err.Errs[0].Error())
@@ -247,7 +252,7 @@ func NewW(err error, opts ...Option) error {
 }
 
 // NewWM - equivalent to New(Errors{err}, Message(message), opts...)
-func NewWM(err error, message string, opts ...Option) error {
+func NewWM(err error, message string, opts ...Option) *xError {
 	Helper()
 
 	return newx(append(opts, Errors{err}, Message(message))...)
