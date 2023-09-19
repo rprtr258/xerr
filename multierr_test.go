@@ -8,7 +8,7 @@ import (
 
 func TestCombine_single(t *testing.T) {
 	got := Combine(NewM("uuh"))
-	assert.IsType(t, (*xError)(nil), got)
+	assert.IsType(t, (*Error)(nil), got)
 }
 
 func TestCombine_many(t *testing.T) {

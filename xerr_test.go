@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newErr() *xError {
-	return New(Stacktrace).(*xError)
+func newErr() *Error {
+	return New(Stacktrace).(*Error)
 }
 
 func TestWithStacktrace(t *testing.T) {
@@ -36,7 +36,7 @@ func TestFields_noFields(t *testing.T) {
 	err := New(
 		Message("abc"),
 		Errors{nil, NewM("def"), nil},
-	).(*xError)
+	).(*Error)
 	assert.Equal(t, "abc", err.Message)
 	assert.Nil(t, err.Fields)
 	assert.EqualError(t, err.Err, "def")
@@ -52,7 +52,7 @@ func TestFields(t *testing.T) {
 			"field2": "2",
 			"field3": 3.3,
 		},
-	).(*xError)
+	).(*Error)
 	want := map[string]any{
 		"field1": 1,
 		"field2": "2",
@@ -71,7 +71,7 @@ func myNewError() error {
 }
 
 func TestNew_callerHelper(t *testing.T) {
-	err := myNewError().(*xError)
+	err := myNewError().(*Error)
 	assert.Equal(t, "github.com/rprtr258/xerr.TestNew_callerHelper", err.Caller.Function)
 }
 
@@ -80,7 +80,7 @@ func faulty() error {
 }
 
 func TestNew_caller(t *testing.T) {
-	err := faulty().(*xError)
+	err := faulty().(*Error)
 	assert.Equal(t, "github.com/rprtr258/xerr.faulty", err.Caller.Function)
 }
 

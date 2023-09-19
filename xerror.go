@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-var _ error = (*xError)(nil)
+var _ error = (*Error)(nil)
 
-// xError - main structure containing error with metadata
-type xError struct {
+// Error - main structure containing error with metadata
+type Error struct {
 	// Message describing error
 	Message string
 	// Fields - error Fields, nil if none
@@ -32,7 +32,7 @@ type xError struct {
 	Caller *stackFrame
 }
 
-func (err *xError) Error() string {
+func (err *Error) Error() string {
 	var sb strings.Builder
 
 	if err.Message != "" {
@@ -85,7 +85,7 @@ func (err *xError) Error() string {
 	return sb.String()
 }
 
-func (err *xError) Unwrap() error {
+func (err *Error) Unwrap() error {
 	if err.Err != nil {
 		return err.Err
 	}
@@ -170,7 +170,7 @@ func (o Fields) apply(c *xErrorConfig) {
 	}
 }
 
-func newx(opts ...Option) *xError {
+func newx(opts ...Option) *Error {
 	Helper()
 
 	if len(opts) == 0 {
@@ -216,7 +216,7 @@ func newx(opts ...Option) *xError {
 		fields = config.fields
 	}
 
-	return &xError{
+	return &Error{
 		Message: config.message,
 		Fields:  fields,
 		At:      config.when,
@@ -252,7 +252,7 @@ func NewW(err error, opts ...Option) error {
 }
 
 // NewWM - equivalent to New(Errors{err}, Message(message), opts...)
-func NewWM(err error, message string, opts ...Option) *xError {
+func NewWM(err error, message string, opts ...Option) *Error {
 	Helper()
 
 	return newx(append(opts, Errors{err}, Message(message))...)

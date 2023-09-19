@@ -57,7 +57,7 @@ func AppendInto(into *error, errs ...error) {
 	switch err := (*into).(type) {
 	case *multierr:
 		err.Errs = append(err.Errs, errs...)
-	case *xError:
+	case *Error:
 		err.Errs = appendErrs(err.Errs, errs)
 	default:
 		*into = Combine(append(errs, *into)...)
