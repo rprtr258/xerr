@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/rprtr258/assert"
 )
 
 func newErr() *Error {
@@ -38,9 +38,9 @@ func TestFields_noFields(t *testing.T) {
 		Errors{nil, NewM("def"), nil},
 	).(*Error)
 	assert.Equal(t, "abc", err.Message)
-	assert.Nil(t, err.Fields)
-	assert.EqualError(t, err.Err, "def")
-	assert.Nil(t, err.Errs)
+	assert.Zero(t, err.Fields)
+	assert.EqualError(t, "def", err.Err)
+	assert.Zero(t, err.Errs)
 }
 
 func TestFields(t *testing.T) {
@@ -60,8 +60,8 @@ func TestFields(t *testing.T) {
 	}
 	assert.Equal(t, "abc", err.Message)
 	assert.Equal(t, want, err.Fields)
-	assert.EqualError(t, err.Err, "def")
-	assert.Nil(t, err.Errs)
+	assert.EqualError(t, "def", err.Err)
+	assert.Zero(t, err.Errs)
 }
 
 func myNewError() error {
@@ -93,7 +93,7 @@ func TestXErr_Error(t *testing.T) {
 	).Error()
 
 	assert.Regexp(t,
-		regexp.MustCompile(strings.Join([]string{
+		strings.Join([]string{
 			"aboba",
 			"code=404",
 			regexp.QuoteMeta("errs=[123; lol]"),
@@ -102,7 +102,7 @@ func TestXErr_Error(t *testing.T) {
 				".*" + regexp.QuoteMeta("testing.tRunner:") + `\d+` + "; " +
 				".*" + regexp.QuoteMeta("runtime.goexit:") + `\d+` + "; " +
 				regexp.QuoteMeta("]"),
-		}, " ")),
+		}, " "),
 		got,
 	)
 }
